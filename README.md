@@ -61,7 +61,7 @@ llama-pajamas/
     └── pyproject.toml
 ```
 
-## Current Status: Phase 1 - Days 3-4 ✅
+## Current Status: Phase 1 - Days 5-6 ✅
 
 **Completed:**
 
@@ -80,10 +80,18 @@ llama-pajamas/
 - [x] GGUF conversion test script
 - [x] Support for Q4_K_M, Q5_K_M, Q6_K quantization
 
-**Next Steps (Days 5-6):**
-- [ ] MLX conversion implementation
-- [ ] Qwen3-8B MLX 4-bit quantization
-- [ ] Dual-format validation
+**Days 5-6:**
+- [x] `MLXConverter` class for Apple Silicon optimization
+- [x] MLX 4-bit mixed precision quantization (4-bit body, 6-bit embeddings)
+- [x] `Quantizer` orchestrator for dual-format conversion
+- [x] Unified manifest.json for both GGUF and MLX
+- [x] Dual-format test script (`test_dual_format.py`)
+- [x] Complete architecture-aware pipeline
+
+**Next Steps (Day 7):**
+- [ ] Quality validation (perplexity, benchmarks)
+- [ ] Performance testing
+- [ ] Documentation polish
 
 ## Quick Start (Development)
 

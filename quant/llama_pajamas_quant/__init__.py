@@ -5,6 +5,12 @@ from .core import (
     ArchitectureInfo,
     ArchitectureFamily,
     AttentionType,
+    ManifestGenerator,
+    Quantizer,
+)
+from .converters import (
+    GGUFConverter,
+    MLXConverter,
 )
 
 __version__ = "0.1.0"
@@ -14,4 +20,8 @@ __all__ = [
     "ArchitectureInfo",
     "ArchitectureFamily",
     "AttentionType",
+    "ManifestGenerator",
+    "Quantizer",
+    "GGUFConverter",
+    "MLXConverter",
 ]

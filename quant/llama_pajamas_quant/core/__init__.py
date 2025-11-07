@@ -7,6 +7,7 @@ from .architecture import (
 )
 from .detector import ArchitectureDetector
 from .manifest import ManifestGenerator
+from .quantizer import Quantizer
 
 __all__ = [
     "ArchitectureInfo",
@@ -14,4 +15,5 @@ __all__ = [
     "AttentionType",
     "ArchitectureDetector",
     "ManifestGenerator",
+    "Quantizer",
 ]
