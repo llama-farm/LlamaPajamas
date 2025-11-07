@@ -1,0 +1,28 @@
+[project]
+name = "llama-pajamas-run"
+version = "0.1.0"
+description = "Lightweight LLM inference runtime for GGUF and MLX formats"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+cuda = [
+    "llama-cpp-python>=0.2.0",
+]
+mlx = [
+    "mlx>=0.19.0",
+    "mlx-lm>=0.19.0",
+]
+full = [
+    "llama-cpp-python>=0.2.0",
+    "mlx>=0.19.0",
+    "mlx-lm>=0.19.0",
+]
+
+[project.scripts]
+llama-pajamas-run = "llama_pajamas_run.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -1,0 +1,24 @@
+[project]
+name = "llama-pajamas-quant"
+version = "0.1.0"
+description = "Architecture-aware LLM quantization pipeline for GGUF and MLX formats"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "transformers>=4.45.0",
+    "torch>=2.4.0",
+    "huggingface-hub>=0.24.0",
+    "safetensors>=0.4.0",
+    "datasets>=2.20.0",
+    "sentencepiece>=0.2.0",
+    "protobuf>=4.25.0",
+    "mlx>=0.19.0",
+    "mlx-lm>=0.19.0",
+]
+
+[project.scripts]
+llama-pajamas-quant = "llama_pajamas_quant.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
