@@ -61,20 +61,29 @@ llama-pajamas/
     └── pyproject.toml
 ```
 
-## Current Status: Phase 1 - Days 1-2 ✅
+## Current Status: Phase 1 - Days 3-4 ✅
 
 **Completed:**
+
+**Days 1-2:**
 - [x] Project setup with UV and Python 3.12
 - [x] Package structure for both `quant/` and `run/`
-- [x] Architecture detection system
-  - [x] `ArchitectureInfo` dataclass with comprehensive model metadata
-  - [x] `ArchitectureDetector` for automatic architecture recognition
-  - [x] Quantization strategy recommendations per architecture
+- [x] Architecture detection system (`ArchitectureInfo`, `ArchitectureDetector`)
+- [x] Quantization strategy recommendations per architecture
 - [x] Testing infrastructure
 
-**Next Steps (Days 3-4):**
-- [ ] GGUF conversion integration with llama.cpp
-- [ ] Qwen3-8B GGUF quantization
+**Days 3-4:**
+- [x] llama.cpp integration as git submodule
+- [x] Built llama-quantize binary (CMake, Metal support)
+- [x] `GGUFConverter` class for HF → GGUF conversion
+- [x] `ManifestGenerator` for model artifact metadata
+- [x] GGUF conversion test script
+- [x] Support for Q4_K_M, Q5_K_M, Q6_K quantization
+
+**Next Steps (Days 5-6):**
+- [ ] MLX conversion implementation
+- [ ] Qwen3-8B MLX 4-bit quantization
+- [ ] Dual-format validation
 
 ## Quick Start (Development)
 
