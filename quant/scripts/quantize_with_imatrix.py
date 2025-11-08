@@ -18,6 +18,14 @@ from pathlib import Path
 from typing import Optional
 import json
 
+# Import our smart builder
+try:
+    from build_llama_cpp import LlamaCppBuilder
+except ImportError:
+    # If running from different directory
+    sys.path.insert(0, str(Path(__file__).parent))
+    from build_llama_cpp import LlamaCppBuilder
+
 
 class IMatrixQuantizer:
     """Orchestrate importance quantization workflow."""
@@ -55,55 +63,12 @@ class IMatrixQuantizer:
         print(f"Using llama.cpp at: {self.llama_cpp_path}")
 
     def _build_llama_cpp(self):
-        """Build llama.cpp binaries if they don't exist."""
-        print("=" * 60)
-        print("BUILDING LLAMA.CPP")
-        print("=" * 60)
+        """Build llama.cpp binaries with hardware-optimized settings."""
+        builder = LlamaCppBuilder(llama_cpp_path=self.llama_cpp_path)
+        success = builder.build()
 
-        build_dir = self.llama_cpp_path / "build"
-        build_dir.mkdir(exist_ok=True)
-
-        # Run cmake configuration
-        print("\nConfiguring with CMake...")
-        cmake_cmd = [
-            "cmake",
-            "..",
-            "-DGGML_METAL=ON",  # Enable Metal for Mac
-        ]
-
-        try:
-            subprocess.run(
-                cmake_cmd,
-                cwd=build_dir,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            print("✅ CMake configuration complete")
-        except subprocess.CalledProcessError as e:
-            print(f"❌ CMake configuration failed: {e.stderr}")
-            raise RuntimeError("Failed to configure llama.cpp with CMake")
-
-        # Build binaries
-        print("\nBuilding binaries (this may take a few minutes)...")
-        build_cmd = [
-            "cmake",
-            "--build", ".",
-            "--config", "Release",
-        ]
-
-        try:
-            result = subprocess.run(
-                build_cmd,
-                cwd=build_dir,
-                check=True,
-                capture_output=False,  # Show build output
-                text=True,
-            )
-            print("\n✅ llama.cpp build complete")
-        except subprocess.CalledProcessError as e:
-            print(f"\n❌ Build failed")
-            raise RuntimeError("Failed to build llama.cpp")
+        if not success:
+            raise RuntimeError("Failed to build llama.cpp with hardware-optimized settings")
 
     def generate_imatrix(
         self,
