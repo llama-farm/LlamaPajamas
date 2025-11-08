@@ -164,6 +164,72 @@
    - iOS/iPadOS thermal management
    - Sustained performance mode integration
 
+### 🔮 Future Enhancements (Post-MVP)
+
+#### Advanced Quantization Optimizations (Phase 3+)
+
+**Graph-Level Optimizations** (Pre-conversion)
+- [ ] Layer fusion and folding
+  - Fuse Linear + LayerNorm chains
+  - Fold bias/normalization into preceding layers
+  - Implementation: `llama_pajamas_quant/optimizers/graph.py`
+- [ ] Pruning and sparsity
+  - Structured/unstructured weight pruning
+  - Low-magnitude weight removal
+  - Sparse matmul acceleration (if runtime supports)
+- [ ] Low-rank decomposition
+  - LoRA/QLoRA adapter merging before export
+  - Parameter count reduction
+  - Inference overhead elimination
+- [ ] KV-cache attention scaling
+  - Reduce KV-heads for long-context models
+  - Head dimension optimization
+  - Memory usage reduction
+
+**Numeric and Layout Optimizations** (During quantization)
+- [ ] Quantization group size tuning
+  - Expose `--group-size` parameter
+  - Trade-off: smaller groups (higher accuracy) vs larger groups (better throughput)
+  - Cache locality optimization
+- [ ] Mixed precision blocks
+  - Keep attention projections in FP16/BF16
+  - Keep embeddings in higher precision
+  - Selective per-tensor quantization using `--tensor-type`
+  - Integration: Add `quant_opts` parameter to converters
+- [ ] KV-cache quantization
+  - Quantize cache activations (Q8_0 or FP16 vs FP32)
+  - Expected: 30%+ RAM savings with minor perplexity loss
+  - Implementation: Pass `--kv-cache-quant` to llama-quantize
+- [ ] Tensor packing and layout
+  - Row-major vs column-major reordering for CPU cache profile
+  - SIMD vector width alignment (8/16/32)
+  - AVX2/AVX-512/NEON optimization
+
+**llama-quantize Flags Available NOW:**
+```bash
+# Mixed precision example
+--token-embedding-type f16       # Keep embeddings in FP16
+--output-tensor-type f16         # Keep output layer in FP16
+--tensor-type attn_q=q8_0        # Keep attention Q/K in Q8
+
+# Other available optimizations
+--pure                           # Disable K-quant mixtures
+--prune-layers 0,1,2            # Remove layers (experimental)
+--override-kv key=value          # Modify model metadata
+```
+
+**Implementation Priority:**
+1. Complete basic evaluation system first
+2. Analyze evaluation results to identify quality bottlenecks
+3. Implement targeted optimizations (e.g., if attention degrades most, add mixed-precision attention)
+4. Benchmark improvements before/after each optimization
+
+**Expected Benefits:**
+- Graph optimizations: 5-15% speedup, minimal quality impact
+- Mixed precision: 10-20% better quality at same size, 5-10% slower
+- KV-cache quantization: 30% memory savings, <2% quality loss
+- Tensor packing: 10-20% CPU throughput improvement
+
 ### 📁 Project Structure
 ```
 llama-pajamas/
