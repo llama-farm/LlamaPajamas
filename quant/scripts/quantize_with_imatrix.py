@@ -41,13 +41,69 @@ class IMatrixQuantizer:
         self.imatrix_bin = self.llama_cpp_path / "build" / "bin" / "llama-imatrix"
         self.quantize_bin = self.llama_cpp_path / "build" / "bin" / "llama-quantize"
 
-        # Verify binaries exist
+        # Auto-build llama.cpp if binaries don't exist
+        if not self.imatrix_bin.exists() or not self.quantize_bin.exists():
+            print(f"\n⚠️  llama.cpp binaries not found, building now...")
+            self._build_llama_cpp()
+
+        # Verify binaries exist after build
         if not self.imatrix_bin.exists():
-            raise ValueError(f"llama-imatrix not found at {self.imatrix_bin}")
+            raise ValueError(f"llama-imatrix not found at {self.imatrix_bin} even after build")
         if not self.quantize_bin.exists():
-            raise ValueError(f"llama-quantize not found at {self.quantize_bin}")
+            raise ValueError(f"llama-quantize not found at {self.quantize_bin} even after build")
 
         print(f"Using llama.cpp at: {self.llama_cpp_path}")
+
+    def _build_llama_cpp(self):
+        """Build llama.cpp binaries if they don't exist."""
+        print("=" * 60)
+        print("BUILDING LLAMA.CPP")
+        print("=" * 60)
+
+        build_dir = self.llama_cpp_path / "build"
+        build_dir.mkdir(exist_ok=True)
+
+        # Run cmake configuration
+        print("\nConfiguring with CMake...")
+        cmake_cmd = [
+            "cmake",
+            "..",
+            "-DGGML_METAL=ON",  # Enable Metal for Mac
+        ]
+
+        try:
+            subprocess.run(
+                cmake_cmd,
+                cwd=build_dir,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            print("✅ CMake configuration complete")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ CMake configuration failed: {e.stderr}")
+            raise RuntimeError("Failed to configure llama.cpp with CMake")
+
+        # Build binaries
+        print("\nBuilding binaries (this may take a few minutes)...")
+        build_cmd = [
+            "cmake",
+            "--build", ".",
+            "--config", "Release",
+        ]
+
+        try:
+            result = subprocess.run(
+                build_cmd,
+                cwd=build_dir,
+                check=True,
+                capture_output=False,  # Show build output
+                text=True,
+            )
+            print("\n✅ llama.cpp build complete")
+        except subprocess.CalledProcessError as e:
+            print(f"\n❌ Build failed")
+            raise RuntimeError("Failed to build llama.cpp")
 
     def generate_imatrix(
         self,
