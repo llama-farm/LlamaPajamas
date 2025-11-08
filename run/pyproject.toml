@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "Lightweight LLM inference runtime for GGUF and MLX formats"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "llama-cpp-python>=0.3.16",
+    "mlx>=0.29.3",
+    "mlx-lm>=0.28.3",
+]
 
 [project.optional-dependencies]
 cuda = [

@@ -8,7 +8,7 @@ Benchmarks (balanced for speed):
 - HellaSwag (100 samples): Common sense
 - ARC-Easy (100 samples): Question answering
 - TruthfulQA (50 samples): Factuality
-- BFCL (100 samples): Tool/function calling
+- GSM8K (100 samples): Math reasoning
 
 Total: ~450 samples, ~15-20 minutes per model
 """
@@ -35,7 +35,7 @@ def run_lm_eval_mlx(model_path: str, output_dir: str):
         "lm_eval",
         "--model", "hf",
         "--model_args", f"pretrained={model_path},dtype=float16",
-        "--tasks", "mmlu_abstract_algebra,hellaswag,arc_easy,truthfulqa_mc2,bfcl",
+        "--tasks", "mmlu_abstract_algebra,hellaswag,arc_easy,truthfulqa_mc2,gsm8k",
         "--num_fewshot", "5",
         "--limit", "100",  # Sample 100 per task for speed
         "--output_path", f"{output_dir}/lm_eval_mlx",
@@ -68,7 +68,7 @@ def run_lm_eval_gguf(model_path: str, output_dir: str):
         "lm_eval",
         "--model", "gguf",
         "--model_args", f"filename={model_path}",
-        "--tasks", "mmlu_abstract_algebra,hellaswag,arc_easy,truthfulqa_mc2,bfcl",
+        "--tasks", "mmlu_abstract_algebra,hellaswag,arc_easy,truthfulqa_mc2,gsm8k",
         "--num_fewshot", "5",
         "--limit", "100",  # Sample 100 per task for speed
         "--output_path", f"{output_dir}/lm_eval_gguf",
@@ -136,7 +136,7 @@ def main():
     print("  - HellaSwag: Common sense reasoning")
     print("  - ARC-Easy: Question answering")
     print("  - TruthfulQA: Factuality")
-    print("  - BFCL: Tool/function calling")
+    print("  - GSM8K: Math reasoning")
     print()
     print("Configuration:")
     print("  - 100 samples per task (except TruthfulQA: 50)")

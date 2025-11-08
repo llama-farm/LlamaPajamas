@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any, Union
 import shutil
 
+from huggingface_hub import snapshot_download
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +31,7 @@ class GGUFConverter:
             raise ValueError(f"llama.cpp not found at {self.llama_cpp_path}")
 
         self.convert_script = self.llama_cpp_path / "convert_hf_to_gguf.py"
-        self.quantize_bin = self.llama_cpp_path / "llama-quantize"
+        self.quantize_bin = self.llama_cpp_path / "build" / "bin" / "llama-quantize"
 
         logger.info(f"Initialized GGUFConverter with llama.cpp at {self.llama_cpp_path}")
 
@@ -54,7 +56,6 @@ class GGUFConverter:
         Raises:
             RuntimeError: If conversion fails
         """
-        model_path = Path(model_path) if isinstance(model_path, str) else model_path
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -65,8 +66,39 @@ class GGUFConverter:
         logger.info(f"Converting {model_path} to GGUF format")
         logger.info(f"Output directory: {gguf_dir}")
 
+        # Download model from HuggingFace if it's a model ID
+        local_model_path = self._download_model(model_path, output_dir)
+
+        # Calculate final output path
+        model_name = local_model_path if isinstance(local_model_path, str) else local_model_path.name
+        if precision.upper() != "F16":
+            final_gguf_path = gguf_dir / f"{model_name.replace('/', '_')}_{precision.lower()}.gguf"
+        else:
+            final_gguf_path = gguf_dir / f"{model_name.replace('/', '_')}_f16.gguf"
+        final_gguf_path = final_gguf_path.resolve()
+
+        # Check if final file already exists
+        if final_gguf_path.exists():
+            logger.info(f"Final GGUF already exists, skipping conversion: {final_gguf_path}")
+            logger.info(f"File size: {final_gguf_path.stat().st_size / (1024**3):.2f} GB")
+
+            # Generate metadata
+            metadata = self._generate_metadata(final_gguf_path, precision, architecture_info)
+            metadata_path = gguf_dir / "metadata.json"
+            with open(metadata_path, "w") as f:
+                json.dump(metadata, f, indent=2)
+
+            return {
+                "gguf_path": str(final_gguf_path),
+                "metadata_path": str(metadata_path),
+                "size_bytes": final_gguf_path.stat().st_size,
+                "size_gb": final_gguf_path.stat().st_size / (1024**3),
+                "precision": precision,
+                "metadata": metadata,
+            }
+
         # Step 1: Convert HuggingFace to GGUF (FP16)
-        fp16_gguf = self._convert_hf_to_gguf(model_path, gguf_dir)
+        fp16_gguf = self._convert_hf_to_gguf(local_model_path, gguf_dir)
 
         # Step 2: Quantize to target precision
         if precision.upper() != "F16":
@@ -99,6 +131,41 @@ class GGUFConverter:
             "metadata": metadata,
         }
 
+    def _download_model(self, model_path: Union[str, Path], output_dir: Path) -> Path:
+        """Download model from HuggingFace if it's a model ID, otherwise return the path.
+
+        Args:
+            model_path: HuggingFace model ID or local path
+            output_dir: Output directory for downloaded models
+
+        Returns:
+            Path to local model directory
+        """
+        model_path_str = str(model_path)
+
+        # If it's a local path that exists, return it
+        if Path(model_path).exists():
+            logger.info(f"Using local model at {model_path}")
+            return Path(model_path)
+
+        # If it's a HuggingFace model ID (contains / and doesn't exist locally)
+        if "/" in model_path_str and not Path(model_path).exists():
+            logger.info(f"Downloading model from HuggingFace: {model_path_str}")
+            cache_dir = output_dir / "hf_cache"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+
+            local_path = snapshot_download(
+                repo_id=model_path_str,
+                cache_dir=str(cache_dir),
+                local_dir=str(output_dir / "hf_model"),
+                local_dir_use_symlinks=False,
+            )
+            logger.info(f"Model downloaded to {local_path}")
+            return Path(local_path)
+
+        # Otherwise, assume it's a local path even if it doesn't exist (will fail later)
+        return Path(model_path)
+
     def _convert_hf_to_gguf(self, model_path: Path, output_dir: Path) -> Path:
         """Convert HuggingFace model to FP16 GGUF.
 
@@ -118,6 +185,13 @@ class GGUFConverter:
         # Output filename
         model_name = model_path if isinstance(model_path, str) else model_path.name
         output_file = output_dir / f"{model_name.replace('/', '_')}_f16.gguf"
+        output_file = output_file.resolve()  # Convert to absolute path
+
+        # Skip if file already exists
+        if output_file.exists():
+            logger.info(f"FP16 GGUF already exists, skipping conversion: {output_file}")
+            logger.info(f"File size: {output_file.stat().st_size / (1024**3):.2f} GB")
+            return output_file
 
         logger.info(f"Converting to FP16 GGUF: {output_file}")
 
@@ -179,6 +253,12 @@ class GGUFConverter:
 
         # Output filename
         output_file = input_gguf.parent / input_gguf.name.replace("_f16.gguf", f"_{precision.lower()}.gguf")
+
+        # Skip if file already exists
+        if output_file.exists():
+            logger.info(f"Quantized GGUF already exists, skipping: {output_file}")
+            logger.info(f"File size: {output_file.stat().st_size / (1024**3):.2f} GB")
+            return output_file
 
         logger.info(f"Quantizing to {precision}: {output_file}")
 

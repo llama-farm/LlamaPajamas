@@ -99,13 +99,13 @@ BALANCED_BENCHMARKS = {
         "metric": "mc2",
         "weight": 0.1,
     },
-    "bfcl": {
-        "name": "BFCL",
-        "description": "Berkeley Function Calling (tool calling)",
-        "num_samples": 100,  # Sample for speed
-        "tasks": ["bfcl"],
+    "gsm8k": {
+        "name": "GSM8K",
+        "description": "Math reasoning (grade school math)",
+        "num_samples": 100,  # Sample for speed (full is 1.3k)
+        "tasks": ["gsm8k"],
         "metric": "acc",
-        "weight": 0.25,  # Important for agentic use cases
+        "weight": 0.25,  # Important for structured reasoning
     },
 }
 

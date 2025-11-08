@@ -18,7 +18,7 @@ class MLXConverter:
             import mlx
             import mlx_lm
             self.mlx_available = True
-            logger.info(f"MLX available: version {mlx.__version__}")
+            logger.info("MLX libraries loaded successfully")
         except ImportError:
             self.mlx_available = False
             logger.warning("MLX not available - install with: pip install mlx mlx-lm")
@@ -61,7 +61,48 @@ class MLXConverter:
 
         # Create MLX subdirectory
         mlx_dir = output_dir / "mlx"
-        mlx_dir.mkdir(parents=True, exist_ok=True)
+
+        # Check if MLX conversion already exists or is incomplete
+        config_file = mlx_dir / "config.json"
+        if mlx_dir.exists():
+            files_in_dir = list(mlx_dir.iterdir())
+            if not files_in_dir:
+                # Empty directory from failed conversion - remove it
+                logger.info(f"Removing empty MLX directory from previous failed conversion: {mlx_dir}")
+                mlx_dir.rmdir()
+            elif config_file.exists():
+                # Complete conversion exists - skip and return
+                logger.info(f"MLX conversion already exists, skipping: {mlx_dir}")
+                # Calculate total size
+                total_size = sum(f.stat().st_size for f in mlx_dir.rglob("*") if f.is_file())
+                logger.info(f"Existing MLX size: {total_size / (1024**3):.2f} GB")
+
+                # Generate metadata for existing conversion
+                metadata = self._generate_metadata(
+                    mlx_dir,
+                    quantize=quantize,
+                    q_bits=q_bits if quantize else None,
+                    mixed_precision=mixed_precision if quantize else False,
+                    architecture_info=architecture_info,
+                )
+                metadata_path = mlx_dir / "metadata.json"
+                with open(metadata_path, "w") as f:
+                    json.dump(metadata, f, indent=2)
+
+                return {
+                    "mlx_dir": str(mlx_dir),
+                    "metadata_path": str(metadata_path),
+                    "size_bytes": total_size,
+                    "size_gb": total_size / (1024**3),
+                    "quantization": {
+                        "enabled": quantize,
+                        "bits": q_bits if quantize else None,
+                        "mixed_precision": mixed_precision if quantize else False,
+                    },
+                    "metadata": metadata,
+                }
+
+        # Don't create the directory - mlx_lm.convert will create it
 
         logger.info(f"Converting {model_path} to MLX format")
         logger.info(f"Output directory: {mlx_dir}")
@@ -137,11 +178,11 @@ class MLXConverter:
         """
         logger.info("Converting and quantizing with mlx-lm...")
 
-        # Build command
+        # Build command with absolute path
         cmd = [
             "python3", "-m", "mlx_lm.convert",
             "--hf-path", model_path,
-            "--mlx-path", str(output_dir),
+            "--mlx-path", str(output_dir.resolve()),
         ]
 
         # Add quantization parameters
@@ -198,7 +239,7 @@ class MLXConverter:
         cmd = [
             "python3", "-m", "mlx_lm.convert",
             "--hf-path", model_path,
-            "--mlx-path", str(output_dir),
+            "--mlx-path", str(output_dir.resolve()),
         ]
 
         logger.debug(f"Running: {' '.join(cmd)}")
