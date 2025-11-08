@@ -12,17 +12,17 @@
 
 ## 🎯 Current Progress (Week 3 - Advanced Quantization Phase)
 
-### ✅ Completed (Weeks 1-2)
+### ✅ Completed (Weeks 1-3)
 - **Quantization Pipeline** (`llama-pajamas-quant`)
   - ✅ Dual-format conversion (GGUF + MLX) working
   - ✅ Qwen3-8B → Multiple precision levels:
-    - GGUF: Q3_K_M (3.8GB), Q4_K_M (4.7GB)
-    - MLX: 2-bit (2.4GB), 3-bit (TBD), 4-bit (4.3GB)
+    - **GGUF**: Q3_K_M (3.8GB), Q4_K_M (4.7GB), **IQ2_XS (3.3GB)** ← NEW!
+    - **MLX**: 2-bit (2.4GB), 3-bit (TBD), 4-bit (4.3GB)
   - ✅ manifest.json auto-generation
   - ✅ Architecture detection (GQA, MoE-ready)
   - ✅ Subdirectory organization (gguf/{precision}/, mlx/{bits}bit-{mixed|pure}/)
 
-- **Benchmarking System** (NEW - EXCEEDED plan)
+- **Benchmarking System** (EXCEEDED plan)
   - ✅ 140-question comprehensive benchmark suite
   - ✅ 6 categories: Knowledge, Math, Reasoning, Common Sense, Truthfulness, Tool Calling
   - ✅ Automatic benchmarking on quantization
@@ -36,40 +36,57 @@
   - ✅ FastAPI with SSE streaming
   - ✅ Full test coverage passing
 
-- **Documentation & Tooling** (NEW)
-  - ✅ Comprehensive README with all quantization methods explained
-  - ✅ MLX converter bug fixed (--q-bits parameter now working)
-  - ✅ Specialized calibration datasets created:
-    - Tool Calling: 80 examples
-    - Summarization: 30 examples
-    - RAG: 30 examples (context + question pairs)
+- **Importance Quantization Infrastructure** (NEW - MAJOR)
+  - ✅ **Calibration Builder** (`build_calibration_data.py`)
+    - Curated datasets: 80 tool calling + 25 summarization + 13 RAG
+    - Synthetic generation via GPT-5-nano (extensible)
+    - Train/test split: 94 calibration / 24 evaluation samples
+    - Configurable: response length, context length, domain, complexity
+  - ✅ **Smart Build System** (`build_llama_cpp.py`)
+    - Hardware auto-detection (Mac Metal, Linux NVIDIA/AMD, CPU)
+    - Auto-builds llama.cpp with optimal settings
+    - Zero configuration needed
+  - ✅ **IMatrix Quantizer** (`quantize_with_imatrix.py`)
+    - Full workflow: calibration → imatrix → quantize
+    - Auto-builds llama.cpp if needed
+    - Reusable imatrix for multiple precisions
+  - ✅ **IQ2_XS Model Generated**
+    - Size: 3.3GB (78% reduction from 15GB F16)
+    - Mixed-precision optimization using importance matrix
+    - Only 13% smaller than Q3_K_M but should have better quality
+  - ✅ **Calibration Data Generated**
+    - 94 training samples (~24K tokens) for imatrix
+    - 24 held-out evaluation samples (~5K tokens)
+    - Metadata tracked for reproducibility
 
 ### 🔄 In Progress (Current Sprint)
-- **Ultra-Low Bit Quantization** (50% size reduction goal)
-  - 🔄 MLX 2-bit: 2.4GB created, benchmarking in progress
-  - ⏳ GGUF IQ2_XS: Ready to implement with importance matrix
-  - ⏳ Calibration/evaluation split: Prevent overfitting
+- **Evaluation & Comparison**
+  - 🔄 Benchmark IQ2_XS vs Q3_K_M vs Q4_K_M
+  - 🔄 Validate quality improvement from importance matrix
+  - ⏳ Document size/quality tradeoffs
 
 ### ⏳ TODO (Week 3 - Priority Order)
 
 #### High Priority (Next 24-48 hours)
-1. **Importance Quantization Setup**
-   - [ ] Create calibration builder script with train/test split
-   - [ ] Generate importance matrix (imatrix) from calibration data
-   - [ ] Quantize to GGUF IQ2_XS with imatrix (~2.4GB target)
-   - [ ] Benchmark IQ2_XS on held-out evaluation set
+1. **Comprehensive Evaluation** ← CURRENT FOCUS
+   - [ ] Benchmark IQ2_XS on full 140-question suite
+   - [ ] Store evaluation results in model-specific folders:
+     - `models/qwen3-8b/gguf/IQ2_XS/evaluation.json`
+     - `models/qwen3-8b/gguf/Q3_K_M/evaluation.json`
+     - `models/qwen3-8b/gguf/Q4_K_M/evaluation.json`
+   - [ ] Compare: IQ2_XS (3.3GB) vs Q3_K_M (3.8GB) vs Q4_K_M (4.7GB)
+   - [ ] Validate if IQ2_XS quality ≈ Q4_K_M (would be 30% size win!)
 
-2. **Complete 2-bit/3-bit Benchmarking**
-   - [ ] Finish MLX 2-bit benchmarks (running)
+2. **Complete MLX 2-bit/3-bit**
+   - [ ] Finish MLX 2-bit benchmarks (running in background)
    - [ ] Re-generate MLX 3-bit with fixed converter
    - [ ] Benchmark MLX 3-bit
-   - [ ] Compare all 6 quantizations (2/3/4-bit × GGUF/MLX)
+   - [ ] Store results in: `models/qwen3-8b/mlx/{precision}/evaluation.json`
 
-3. **Calibration/Evaluation Methodology**
-   - [ ] Implement proper train/test split (no data leakage)
-   - [ ] Calibration set: 512 samples (80 tool + 30 benchmark + 402 C4)
-   - [ ] Evaluation set: 110 held-out benchmark questions
-   - [ ] Document methodology for reproducibility
+3. **Generate Final Comparison Report**
+   - [ ] All 6 models evaluated with consistent methodology
+   - [ ] Accuracy vs Size vs Speed charts
+   - [ ] Recommendation matrix (use case → optimal quantization)
 
 #### Medium Priority (This Week)
 4. **Quality Validation**
