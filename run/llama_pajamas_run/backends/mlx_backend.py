@@ -14,11 +14,13 @@ class MLXBackend(Backend):
         self.tokenizer = None
         self._model_path = None
 
-    def load_model(self, model_path: str, **kwargs) -> None:
+    def load_model(self, model_path: str, config_path: Optional[str] = None, verbose: bool = False, **kwargs) -> None:
         """Load MLX model.
 
         Args:
             model_path: Path to MLX model directory
+            config_path: Path to runtime config JSON (for metadata/validation)
+            verbose: Enable verbose logging
             **kwargs: Additional mlx-lm parameters
         """
         try:
@@ -29,8 +31,21 @@ class MLXBackend(Backend):
                 "pip install llama-pajamas-run[mlx] or uv add mlx mlx-lm"
             )
 
+        # Load config if provided (MLX handles optimization internally, but we can validate/log)
+        if config_path:
+            import json
+            from pathlib import Path
+            with open(Path(config_path)) as f:
+                config = json.load(f)
+
+                if verbose:
+                    metadata = config.get("metadata", {})
+                    print(f"Loaded config for: {metadata.get('hardware_profile', 'unknown')}")
+                    print(f"Expected performance: ~{metadata.get('expected_tokens_per_sec', '?')} tokens/sec")
+                    print("Note: MLX handles optimization internally via Metal Performance Shaders")
+
         self._model_path = model_path
-        self.model, self.tokenizer = load(model_path)
+        self.model, self.tokenizer = load(model_path, **kwargs)
 
     def generate(
         self,

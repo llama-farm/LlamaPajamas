@@ -13,14 +13,20 @@ class GGUFBackend(Backend):
         self.model = None
         self._model_path = None
 
-    def load_model(self, model_path: str, n_ctx: int = 4096, n_gpu_layers: int = -1, verbose: bool = False, **kwargs) -> None:
+    def load_model(self, model_path: str, n_ctx: int = 4096, n_gpu_layers: int = -1,
+                   n_threads: Optional[int] = None, n_batch: int = 512, n_ubatch: int = 16,
+                   verbose: bool = False, config_path: Optional[str] = None, **kwargs) -> None:
         """Load GGUF model using llama-cpp-python.
 
         Args:
             model_path: Path to .gguf file
             n_ctx: Context window size
             n_gpu_layers: Number of layers to offload to GPU (-1 = all)
+            n_threads: Number of CPU threads (None = auto-detect)
+            n_batch: Prompt processing batch size
+            n_ubatch: Decode (generation) batch size
             verbose: Enable verbose logging
+            config_path: Path to runtime config JSON (overrides other params)
             **kwargs: Additional llama-cpp-python parameters
         """
         try:
@@ -31,11 +37,32 @@ class GGUFBackend(Backend):
                 "pip install llama-pajamas-run[cuda] or uv add llama-cpp-python"
             )
 
+        # Load config if provided
+        if config_path:
+            import json
+            from pathlib import Path
+            with open(Path(config_path)) as f:
+                config = json.load(f)
+                settings = config.get("settings", {})
+                n_ctx = settings.get("n_ctx", n_ctx)
+                n_gpu_layers = settings.get("n_gpu_layers", n_gpu_layers)
+                n_threads = settings.get("n_threads", n_threads)
+                n_batch = settings.get("n_batch", n_batch)
+                n_ubatch = settings.get("n_ubatch", n_ubatch)
+
+                if verbose:
+                    metadata = config.get("metadata", {})
+                    print(f"Loaded config for: {metadata.get('hardware_profile', 'unknown')}")
+                    print(f"Expected performance: ~{metadata.get('expected_tokens_per_sec', '?')} tokens/sec")
+
         self._model_path = model_path
         self.model = Llama(
             model_path=model_path,
             n_ctx=n_ctx,
             n_gpu_layers=n_gpu_layers,
+            n_threads=n_threads,
+            n_batch=n_batch,
+            n_ubatch=n_ubatch,
             verbose=verbose,
             **kwargs
         )
