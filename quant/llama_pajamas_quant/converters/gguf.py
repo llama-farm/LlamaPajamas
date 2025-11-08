@@ -59,8 +59,9 @@ class GGUFConverter:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create GGUF subdirectory
-        gguf_dir = output_dir / "gguf"
+        # Create descriptive subdirectory based on quantization precision
+        # Format: gguf/{precision}/
+        gguf_dir = output_dir / "gguf" / precision
         gguf_dir.mkdir(parents=True, exist_ok=True)
 
         logger.info(f"Converting {model_path} to GGUF format")
@@ -69,12 +70,9 @@ class GGUFConverter:
         # Download model from HuggingFace if it's a model ID
         local_model_path = self._download_model(model_path, output_dir)
 
-        # Calculate final output path
+        # Calculate final output path (simpler now since precision is in directory)
         model_name = local_model_path if isinstance(local_model_path, str) else local_model_path.name
-        if precision.upper() != "F16":
-            final_gguf_path = gguf_dir / f"{model_name.replace('/', '_')}_{precision.lower()}.gguf"
-        else:
-            final_gguf_path = gguf_dir / f"{model_name.replace('/', '_')}_f16.gguf"
+        final_gguf_path = gguf_dir / f"{model_name.replace('/', '_')}.gguf"
         final_gguf_path = final_gguf_path.resolve()
 
         # Check if final file already exists

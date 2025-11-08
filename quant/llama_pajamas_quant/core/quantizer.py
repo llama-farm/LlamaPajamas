@@ -8,7 +8,6 @@ from .detector import ArchitectureDetector
 from .manifest import ManifestGenerator
 from ..converters.gguf import GGUFConverter
 from ..converters.mlx import MLXConverter
-from ..evaluator import ModelEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +30,7 @@ class Quantizer:
         gguf_precision: str = "Q4_K_M",
         mlx_bits: int = 4,
         mlx_mixed_precision: bool = True,
-        evaluate: bool = False,
-        judge_model: str = "gpt-5-nano",
+        benchmark: bool = True,  # Run simple benchmarks by default
     ) -> Dict[str, Any]:
         """Convert model to multiple formats with architecture-aware quantization.
 
@@ -40,7 +38,7 @@ class Quantizer:
         1. Detects the model architecture
         2. Converts to requested formats (GGUF, MLX, or both)
         3. Generates a unified manifest.json
-        4. Optionally evaluates quantized models using LLM-as-judge
+        4. Optionally benchmarks quantized models (140 questions across 6 categories)
 
         Args:
             model_path: HuggingFace model ID or local path
@@ -49,11 +47,10 @@ class Quantizer:
             gguf_precision: GGUF quantization method (default: Q4_K_M)
             mlx_bits: MLX quantization bits (default: 4)
             mlx_mixed_precision: Use mixed precision for MLX (default: True)
-            evaluate: Run LLM-as-judge evaluation after quantization (default: False)
-            judge_model: OpenAI model to use for evaluation (default: gpt-5-nano)
+            benchmark: Run comprehensive benchmarks after quantization (default: True)
 
         Returns:
-            Dictionary with conversion results, paths, and optional evaluations
+            Dictionary with conversion results, paths, and optional benchmarks
 
         Example:
             >>> quantizer = Quantizer()
@@ -61,11 +58,12 @@ class Quantizer:
             ...     "Qwen/Qwen3-8B",
             ...     "./models/qwen3-8b",
             ...     formats=["gguf", "mlx"],
-            ...     evaluate=True  # Auto-evaluate with GPT-5 nano
+            ...     benchmark=True  # Auto-benchmark both models
             ... )
             >>> print(f"GGUF: {result['gguf']['size_gb']:.2f} GB")
             >>> print(f"MLX: {result['mlx']['size_gb']:.2f} GB")
-            >>> print(f"Quality: {result['evaluations']['mlx'].avg_quality:.1f}/10")
+            >>> print(f"GGUF Accuracy: {result['benchmarks']['gguf']['accuracy']:.1%}")
+            >>> print(f"MLX Accuracy: {result['benchmarks']['mlx']['accuracy']:.1%}")
         """
         model_path = str(model_path)
         output_dir = Path(output_dir)
@@ -169,67 +167,69 @@ class Quantizer:
         logger.info("=" * 70)
         logger.info("")
 
-        # Optional: Evaluate quantized models
-        evaluations = {}
-        if evaluate:
+        # Optional: Benchmark quantized models
+        benchmarks = {}
+        if benchmark:
             logger.info("=" * 70)
-            logger.info("Running LLM-as-Judge Evaluation")
+            logger.info("Running Comprehensive Benchmarks")
             logger.info("=" * 70)
-            logger.info(f"Judge Model: {judge_model}")
+            logger.info("140 questions across 6 categories:")
+            logger.info("  - Knowledge (MMLU-style): 25 questions")
+            logger.info("  - Common Sense (HellaSwag-style): 20 questions")
+            logger.info("  - Math (GSM8K-style): 25 questions")
+            logger.info("  - Reasoning (ARC-style): 20 questions")
+            logger.info("  - Truthfulness (TruthfulQA-style): 20 questions")
+            logger.info("  - Tool Calling (BFCL-style): 30 questions")
             logger.info("")
 
-            evaluator = ModelEvaluator(judge_model=judge_model)
+            from ..simple_benchmarks import test_mlx_model, test_gguf_model, compare_results
 
-            # Evaluate MLX model
+            # Benchmark MLX model
             if "mlx" in results:
-                mlx_path = results["mlx"]["model_path"]
-                mlx_config = {
-                    "quantization": "mlx",
-                    "bits": mlx_bits,
-                    "mixed_precision": mlx_mixed_precision,
-                }
+                mlx_path = results["mlx"]["mlx_dir"]  # Use correct key
+                logger.info("Benchmarking MLX model...")
+                mlx_benchmark = test_mlx_model(str(mlx_path))
+                benchmarks["mlx"] = mlx_benchmark
 
-                mlx_eval = evaluator.evaluate_mlx(mlx_path, mlx_config)
-                evaluations["mlx"] = mlx_eval
+                # Save benchmark with descriptive name
+                import json
+                precision_type = "mixed" if mlx_mixed_precision else "pure"
+                benchmark_name = f"benchmark_mlx_{mlx_bits}bit-{precision_type}.json"
+                benchmark_path = output_dir / benchmark_name
+                with open(benchmark_path, 'w') as f:
+                    json.dump(mlx_benchmark, f, indent=2)
+                logger.info(f"  Saved to: {benchmark_path}")
 
-                # Save evaluation
-                eval_path = output_dir / "evaluation_mlx.json"
-                evaluator.save_evaluation(mlx_eval, str(eval_path))
-
-            # Evaluate GGUF model
+            # Benchmark GGUF model
             if "gguf" in results:
-                gguf_path = results["gguf"]["model_path"]
-                gguf_config = {
-                    "quantization": "gguf",
-                    "precision": gguf_precision,
-                }
+                gguf_path = results["gguf"]["gguf_path"]  # Use correct key
+                logger.info("Benchmarking GGUF model...")
+                gguf_benchmark = test_gguf_model(str(gguf_path))
+                benchmarks["gguf"] = gguf_benchmark
 
-                gguf_eval = evaluator.evaluate_gguf(gguf_path, gguf_config)
-                evaluations["gguf"] = gguf_eval
+                # Save benchmark with descriptive name
+                import json
+                benchmark_name = f"benchmark_gguf_{gguf_precision}.json"
+                benchmark_path = output_dir / benchmark_name
+                with open(benchmark_path, 'w') as f:
+                    json.dump(gguf_benchmark, f, indent=2)
+                logger.info(f"  Saved to: {benchmark_path}")
 
-                # Save evaluation
-                eval_path = output_dir / "evaluation_gguf.json"
-                evaluator.save_evaluation(gguf_eval, str(eval_path))
+            # Print comparison if both formats benchmarked
+            if len(benchmarks) == 2:
+                compare_results(benchmarks["mlx"], benchmarks["gguf"])
 
-            # Print comparison if both formats evaluated
-            if len(evaluations) > 1:
-                logger.info("\n" + "=" * 70)
-                logger.info("EVALUATION COMPARISON")
-                logger.info("=" * 70)
-                for fmt, eval_result in evaluations.items():
-                    logger.info(f"\n{fmt.upper()}:")
-                    logger.info(f"  Quality:   {eval_result.avg_quality:.1f}/10")
-                    logger.info(f"  Accuracy:  {eval_result.avg_accuracy:.1f}/10")
-                    logger.info(f"  Coherence: {eval_result.avg_coherence:.1f}/10")
-                    logger.info(f"  Speed:     {eval_result.avg_generation_time:.2f}s/prompt")
-                logger.info("=" * 70)
-                logger.info("")
+                # Save combined results
+                combined_path = output_dir / "benchmarks_comparison.json"
+                with open(combined_path, 'w') as f:
+                    json.dump(benchmarks, f, indent=2)
+                logger.info(f"  Combined results saved to: {combined_path}")
 
         return {
             "architecture": arch.to_dict(),
             "strategy": strategy,
             "results": results,
             "manifest": manifest,
-            "evaluations": evaluations,
+            "benchmarks": benchmarks,
             "output_dir": str(output_dir),
         }

@@ -42,6 +42,11 @@ def main():
         default=4,
         help="MLX quantization bits (default: 4)"
     )
+    parser.add_argument(
+        "--no-benchmark",
+        action="store_true",
+        help="Skip benchmarking (benchmarks run by default)"
+    )
 
     args = parser.parse_args()
     formats = [f.strip() for f in args.formats.split(",")]
@@ -68,6 +73,7 @@ def main():
             gguf_precision=args.gguf_precision,
             mlx_bits=args.mlx_bits,
             mlx_mixed_precision=True,
+            benchmark=not args.no_benchmark,  # Benchmarks run by default
         )
 
         print()

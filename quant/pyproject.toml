@@ -19,7 +19,8 @@ dependencies = [
     "openai>=2.7.1",
     "python-dotenv>=1.2.1",
     "accelerate>=1.11.0",
-    "lm-eval>=0.4.9",
+    "lm-eval[api]>=0.4.9",
+    "tenacity>=9.1.2",
 ]
 
 [project.scripts]
