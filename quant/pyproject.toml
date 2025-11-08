@@ -18,6 +18,8 @@ dependencies = [
     "psutil>=7.1.3",
     "openai>=2.7.1",
     "python-dotenv>=1.2.1",
+    "accelerate>=1.11.0",
+    "lm-eval>=0.4.9",
 ]
 
 [project.scripts]
