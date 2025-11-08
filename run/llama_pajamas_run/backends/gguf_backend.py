@@ -119,7 +119,10 @@ class GGUFBackend(Backend):
         stop: Optional[List[str]] = None,
         stream: bool = False,
     ) -> Dict[str, Any] | Iterator[Dict[str, Any]]:
-        """Generate OpenAI-compatible chat completion."""
+        """Generate OpenAI-compatible chat completion.
+
+        Uses the model's built-in chat template from metadata.
+        """
         if not self.model:
             raise RuntimeError("Model not loaded. Call load_model() first.")
 

@@ -101,23 +101,53 @@ def run_interactive(
 
     print("\nModel loaded! Type your message (Ctrl+C to exit)\n")
 
-    # Interactive loop
+    # Interactive loop with chat history
+    messages = []
     try:
         while True:
             user_input = input("You: ").strip()
             if not user_input:
                 continue
 
+            # Add user message
+            messages.append({"role": "user", "content": user_input})
+
             print("Assistant: ", end="", flush=True)
 
-            # Stream response token by token
-            for token in runtime.generate(
-                user_input,
-                max_tokens=200,
-                temperature=0.7,
-                stream=True
-            ):
-                print(token, end="", flush=True)
+            # Use chat_completion if available (GGUF), otherwise fallback to generate
+            if hasattr(runtime, 'chat_completion'):
+                # Stream chat completion (uses model's chat template)
+                response_chunks = runtime.chat_completion(
+                    messages=messages,
+                    max_tokens=200,
+                    temperature=0.7,
+                    stream=True
+                )
+
+                assistant_message = ""
+                for chunk in response_chunks:
+                    if "choices" in chunk and len(chunk["choices"]) > 0:
+                        delta = chunk["choices"][0].get("delta", {})
+                        content = delta.get("content", "")
+                        if content:
+                            print(content, end="", flush=True)
+                            assistant_message += content
+
+                # Add assistant response to history
+                messages.append({"role": "assistant", "content": assistant_message})
+            else:
+                # Fallback: raw generate (MLX)
+                assistant_message = ""
+                for token in runtime.generate(
+                    user_input,
+                    max_tokens=200,
+                    temperature=0.7,
+                    stream=True
+                ):
+                    print(token, end="", flush=True)
+                    assistant_message += token
+
+                messages.append({"role": "assistant", "content": assistant_message})
 
             print("\n")
 

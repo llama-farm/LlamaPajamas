@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""Standalone entry point for llama-pajamas runtime."""
+
+import sys
+from pathlib import Path
+
+# Add run directory to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from llama_pajamas_run.cli import main
+
+if __name__ == "__main__":
+    main()
