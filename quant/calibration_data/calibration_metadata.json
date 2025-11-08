@@ -1,0 +1,26 @@
+{
+  "total_samples": 118,
+  "train_samples": 94,
+  "test_samples": 24,
+  "train_ratio": 0.8,
+  "seed": 42,
+  "curated_datasets": {
+    "tool_calling": true,
+    "summarization": true,
+    "rag": true
+  },
+  "synthetic_generation": {
+    "enabled": false,
+    "num_samples": 0,
+    "domain": "general",
+    "complexity": "medium",
+    "task_type": "qa",
+    "response_length": "medium",
+    "context_length": 2048,
+    "model": "gpt-5-nano"
+  },
+  "files": {
+    "calibration": "calibration_data/calibration.txt",
+    "evaluation": "calibration_data/evaluation.txt"
+  }
+}
