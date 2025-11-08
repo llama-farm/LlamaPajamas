@@ -10,27 +10,86 @@
 
 ---
 
-## 🎯 Current Progress (Week 2 Complete)
+## 🎯 Current Progress (Week 3 - Advanced Quantization Phase)
 
-### ✅ Completed
+### ✅ Completed (Weeks 1-2)
 - **Quantization Pipeline** (`llama-pajamas-quant`)
-  - Dual-format conversion (GGUF + MLX) working
-  - Qwen3-8B → 4.7GB GGUF (Q4_K_M) + 4.3GB MLX (4-bit)
-  - manifest.json auto-generation
-  - Architecture detection (basic)
+  - ✅ Dual-format conversion (GGUF + MLX) working
+  - ✅ Qwen3-8B → Multiple precision levels:
+    - GGUF: Q3_K_M (3.8GB), Q4_K_M (4.7GB)
+    - MLX: 2-bit (2.4GB), 3-bit (TBD), 4-bit (4.3GB)
+  - ✅ manifest.json auto-generation
+  - ✅ Architecture detection (GQA, MoE-ready)
+  - ✅ Subdirectory organization (gguf/{precision}/, mlx/{bits}bit-{mixed|pure}/)
+
+- **Benchmarking System** (NEW - EXCEEDED plan)
+  - ✅ 140-question comprehensive benchmark suite
+  - ✅ 6 categories: Knowledge, Math, Reasoning, Common Sense, Truthfulness, Tool Calling
+  - ✅ Automatic benchmarking on quantization
+  - ✅ Results: Q3_K_M: 94.3% accuracy, Q4_K_M: ~94% accuracy
+  - ✅ Performance tracking: Speed and quality metrics
 
 - **Specialized Runtimes** (Architecture EXCEEDED plan)
-  - `llama-pajamas-run-core`: Shared server + OpenAI API
-  - `llama-pajamas-run-mlx`: Apple Silicon specialized
-  - `llama-pajamas-run-gguf`: Universal (CPU/CUDA/Metal)
-  - FastAPI with SSE streaming
-  - Full test coverage passing
+  - ✅ `llama-pajamas-run-core`: Shared server + OpenAI API
+  - ✅ `llama-pajamas-run-mlx`: Apple Silicon specialized
+  - ✅ `llama-pajamas-run-gguf`: Universal (CPU/CUDA/Metal)
+  - ✅ FastAPI with SSE streaming
+  - ✅ Full test coverage passing
 
-### ⏳ TODO (Week 3)
-- Quality validation (perplexity, benchmarks)
-- Performance benchmarking (tok/s measurements)
-- GPT-OSS-20B MoE support
-- Comprehensive documentation
+- **Documentation & Tooling** (NEW)
+  - ✅ Comprehensive README with all quantization methods explained
+  - ✅ MLX converter bug fixed (--q-bits parameter now working)
+  - ✅ Specialized calibration datasets created:
+    - Tool Calling: 80 examples
+    - Summarization: 30 examples
+    - RAG: 30 examples (context + question pairs)
+
+### 🔄 In Progress (Current Sprint)
+- **Ultra-Low Bit Quantization** (50% size reduction goal)
+  - 🔄 MLX 2-bit: 2.4GB created, benchmarking in progress
+  - ⏳ GGUF IQ2_XS: Ready to implement with importance matrix
+  - ⏳ Calibration/evaluation split: Prevent overfitting
+
+### ⏳ TODO (Week 3 - Priority Order)
+
+#### High Priority (Next 24-48 hours)
+1. **Importance Quantization Setup**
+   - [ ] Create calibration builder script with train/test split
+   - [ ] Generate importance matrix (imatrix) from calibration data
+   - [ ] Quantize to GGUF IQ2_XS with imatrix (~2.4GB target)
+   - [ ] Benchmark IQ2_XS on held-out evaluation set
+
+2. **Complete 2-bit/3-bit Benchmarking**
+   - [ ] Finish MLX 2-bit benchmarks (running)
+   - [ ] Re-generate MLX 3-bit with fixed converter
+   - [ ] Benchmark MLX 3-bit
+   - [ ] Compare all 6 quantizations (2/3/4-bit × GGUF/MLX)
+
+3. **Calibration/Evaluation Methodology**
+   - [ ] Implement proper train/test split (no data leakage)
+   - [ ] Calibration set: 512 samples (80 tool + 30 benchmark + 402 C4)
+   - [ ] Evaluation set: 110 held-out benchmark questions
+   - [ ] Document methodology for reproducibility
+
+#### Medium Priority (This Week)
+4. **Quality Validation**
+   - [ ] Perplexity measurements on WikiText-2
+   - [ ] Generation quality comparison (qualitative)
+   - [ ] Document quality thresholds
+
+5. **Performance Benchmarking**
+   - [ ] Tokens/second measurements
+   - [ ] Memory usage profiling
+   - [ ] Load time comparisons
+
+6. **Comprehensive Comparison**
+   - [ ] Run compare_all_quantizations.py
+   - [ ] Generate accuracy vs size vs speed charts
+   - [ ] Identify optimal quantization for different use cases
+
+#### Lower Priority (Future)
+7. **GPT-OSS-20B MoE Support** (Deferred to post-MVP)
+8. **Additional Formats** (ONNX, TensorRT - post-MVP)
 
 ### 📁 Project Structure
 ```

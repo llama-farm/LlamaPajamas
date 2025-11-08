@@ -1,0 +1,216 @@
+"""Extended tool calling calibration data for importance quantization.
+
+This module provides 80 diverse tool calling examples covering:
+- Simple single-parameter tools
+- Complex multi-parameter extraction
+- Ambiguous tool selection
+- Multi-step tool chains
+- Edge cases and error handling
+- Real-world API patterns
+"""
+
+TOOL_CALLING_CALIBRATION = [
+    # ========== CATEGORY 1: Web & Search Tools (15 questions) ==========
+
+    "Search for 'Python async programming tutorial' on the web",
+
+    "Find recent news articles about artificial intelligence regulation",
+
+    "Look up the definition of 'quantum entanglement' using a search engine",
+
+    "Search for Italian restaurants within 5 miles of my location",
+
+    "Find GitHub repositories related to 'MLX machine learning' sorted by stars",
+
+    "Search for academic papers about 'transformer architecture' published after 2023",
+
+    "Look up the current stock price for Tesla (TSLA)",
+
+    "Find YouTube videos about 'llama.cpp quantization tutorial'",
+
+    "Search for apartments in San Francisco under $3000 per month with 2 bedrooms",
+
+    "Look up weather forecast for Tokyo, Japan for the next 7 days",
+
+    "Search for product reviews of 'iPhone 15 Pro' on Amazon",
+
+    "Find the official documentation for Python's asyncio library",
+
+    "Search for job postings for 'Senior ML Engineer' in Seattle",
+
+    "Look up the nearest Tesla Supercharger station to my current location",
+
+    "Search for flights from New York to London departing next Monday",
+
+    # ========== CATEGORY 2: Communication Tools (15 questions) ==========
+
+    "Send an email to sarah@company.com with subject 'Q4 Report' and attach the quarterly_data.xlsx file",
+
+    "Schedule a Slack message to the #engineering channel at 9am tomorrow saying 'Daily standup in 5 minutes'",
+
+    "Create a calendar event titled 'Team Retrospective' on Friday at 3pm and invite alice@company.com, bob@company.com, and carol@company.com",
+
+    "Send a text message to +1-555-0123 saying 'Running 10 minutes late, be there soon'",
+
+    "Forward the email from john@example.com about 'Budget Approval' to my manager with a note saying 'FYI - need your review'",
+
+    "Post to Twitter: 'Just released v2.0 of our open-source quantization library! Check it out at github.com/...' with the hashtags #MachineLearning and #OpenSource",
+
+    "Create a Google Meet link for a meeting titled 'Product Demo' scheduled for tomorrow at 2pm",
+
+    "Send a Microsoft Teams message to the 'Data Science' team asking 'Has anyone reviewed the latest model results?'",
+
+    "Reply to the email from hr@company.com with 'Thank you, I confirm my attendance' and CC my manager",
+
+    "Create a Discord message in the #general channel with an embedded poll asking 'Which feature should we prioritize?' with options: 'Performance', 'Accuracy', 'Ease of use'",
+
+    "Schedule a recurring calendar event every Monday at 10am for 'Weekly Team Sync' starting next week",
+
+    "Send a LinkedIn message to 'Dr. Jane Smith' saying 'I enjoyed your talk at the ML conference. Would love to connect!'",
+
+    "Create a Zoom meeting for 50 participants titled 'All Hands Meeting' on the first Friday of next month at 11am",
+
+    "Email the support team at help@company.com describing the bug: 'Login button not working on mobile Safari' with severity 'High'",
+
+    "Set up an out-of-office auto-reply from December 20th to January 5th saying 'On vacation, will respond when I return'",
+
+    # ========== CATEGORY 3: File & Data Management (15 questions) ==========
+
+    "Create a new folder called 'Q4_2024_Reports' in my Documents directory",
+
+    "Move all PDF files from Downloads folder to the 'Documents/Research Papers' folder",
+
+    "Rename the file 'draft_v3_final_FINAL.docx' to 'Product_Roadmap_2024.docx'",
+
+    "Search for all Excel files modified in the last 7 days containing the word 'budget'",
+
+    "Compress the folder 'project_assets' into a zip file named 'project_assets_backup_2024.zip'",
+
+    "Delete all files in the Temp folder older than 30 days",
+
+    "Create a CSV file with columns: Name, Email, Department, and add three sample employee records",
+
+    "Convert the PDF document 'annual_report.pdf' to a Word document",
+
+    "Upload the file 'presentation.pptx' to Google Drive in the 'Shared/Marketing' folder",
+
+    "Extract all images from the PowerPoint presentation 'product_launch.pptx' and save them to a new folder",
+
+    "Merge the three PDF files 'chapter1.pdf', 'chapter2.pdf', 'chapter3.pdf' into a single document called 'full_book.pdf'",
+
+    "Create a backup of the 'Projects' folder to an external drive with timestamp",
+
+    "Find duplicate files in my Pictures folder and create a list of them",
+
+    "Export my browser bookmarks to a JSON file called 'bookmarks_backup.json'",
+
+    "Convert all PNG images in the 'Screenshots' folder to JPEG format with 80% quality",
+
+    # ========== CATEGORY 4: Calculations & Data Processing (15 questions) ==========
+
+    "Calculate the monthly payment on a $500,000 mortgage at 6.5% annual interest over 30 years",
+
+    "What's the compound interest on $10,000 invested at 7% annual rate compounded quarterly for 5 years?",
+
+    "Convert 150 kilometers to miles and then convert that to feet",
+
+    "Calculate the area of a circle with radius 7.5 meters",
+
+    "What's 18% of $3,450, and then add sales tax of 8.5% to that amount?",
+
+    "Calculate how many days are between January 15, 2024 and July 30, 2024",
+
+    "If I invest $1,000 monthly at 8% annual return, how much will I have in 20 years?",
+
+    "Convert 98.6 degrees Fahrenheit to Celsius",
+
+    "Calculate the volume of a rectangular prism with length 12cm, width 8cm, and height 5cm",
+
+    "What's the average of these numbers: 23, 45, 67, 89, 34, 56, 78, 12?",
+
+    "Calculate the percentage increase from $45,000 to $52,000",
+
+    "Find the greatest common divisor of 144 and 256",
+
+    "Calculate the distance between coordinates (40.7128° N, 74.0060° W) and (34.0522° N, 118.2437° W)",
+
+    "What's the square root of 2,025?",
+
+    "Calculate the body mass index (BMI) for a person who is 175cm tall and weighs 70kg",
+
+    # ========== CATEGORY 5: System & Automation (10 questions) ==========
+
+    "Set a reminder for tomorrow at 9am to 'Review the quarterly budget'",
+
+    "Create a recurring task every Monday at 8am to 'Check email backlog'",
+
+    "Schedule the system to run the backup script at 2am every Sunday",
+
+    "Set the thermostat to 72 degrees Fahrenheit at 6pm on weekdays",
+
+    "Turn off all smart lights in the house at 11pm",
+
+    "Start a timer for 25 minutes for a Pomodoro work session",
+
+    "Set an alarm for 6:30am on weekdays and 8am on weekends",
+
+    "Create an automation: when I arrive home, turn on the hallway lights",
+
+    "Schedule my computer to shut down at midnight if no activity for 30 minutes",
+
+    "Enable Do Not Disturb mode from 10pm to 7am every day",
+
+    # ========== CATEGORY 6: Database & API Queries (10 questions) ==========
+
+    "Query the database for all customers who made purchases over $1,000 in the last 30 days",
+
+    "Fetch the user profile for user_id 12345 from the API",
+
+    "Update the product inventory: set quantity to 500 for product_sku 'ABC-123'",
+
+    "Get a list of all active subscriptions that are set to renew this month",
+
+    "Insert a new record into the employees table: name 'John Doe', department 'Engineering', start_date '2024-01-15'",
+
+    "Call the weather API to get the current temperature and humidity for ZIP code 94102",
+
+    "Fetch the latest 100 tweets mentioning '@company' using the Twitter API",
+
+    "Query the analytics database for page views grouped by hour for the last 24 hours",
+
+    "Update user preferences: set theme to 'dark mode' and notifications to 'enabled' for user 'alice@example.com'",
+
+    "Get the exchange rate from USD to EUR from the currency API",
+]
+
+
+def get_tool_calling_calibration_text():
+    """Generate formatted calibration text for tool calling.
+
+    Returns:
+        str: Newline-separated tool calling prompts
+    """
+    return "\n\n".join(TOOL_CALLING_CALIBRATION)
+
+
+def save_tool_calling_calibration(filepath: str = "calibration_tools.txt"):
+    """Save tool calling calibration to a file.
+
+    Args:
+        filepath: Path to save calibration file
+    """
+    with open(filepath, 'w') as f:
+        f.write(get_tool_calling_calibration_text())
+    print(f"Saved {len(TOOL_CALLING_CALIBRATION)} tool calling calibration examples to {filepath}")
+
+
+if __name__ == "__main__":
+    save_tool_calling_calibration()
+    print(f"\nTotal questions: {len(TOOL_CALLING_CALIBRATION)}")
+    print(f"Categories:")
+    print(f"  - Web & Search: 15")
+    print(f"  - Communication: 15")
+    print(f"  - File & Data Management: 15")
+    print(f"  - Calculations & Data Processing: 15")
+    print(f"  - System & Automation: 10")
+    print(f"  - Database & API Queries: 10")

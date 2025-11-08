@@ -59,8 +59,11 @@ class MLXConverter:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create MLX subdirectory
-        mlx_dir = output_dir / "mlx"
+        # Create descriptive subdirectory based on quantization settings
+        # Format: mlx/{bits}bit-{mixed|pure}/
+        precision_type = "mixed" if mixed_precision else "pure"
+        quant_name = f"{q_bits}bit-{precision_type}"
+        mlx_dir = output_dir / "mlx" / quant_name
 
         # Check if MLX conversion already exists or is incomplete
         config_file = mlx_dir / "config.json"
@@ -188,10 +191,12 @@ class MLXConverter:
         # Add quantization parameters
         if q_bits:
             cmd.extend(["-q"])  # Enable quantization
+            cmd.extend(["--q-bits", str(q_bits)])  # Specify bit width
+            cmd.extend(["--q-group-size", str(q_group_size)])  # Specify group size
 
-        # mlx-lm uses --q-bits and --q-group-size
-        # For mixed precision, we'll post-process or use mlx.quantize API
-        # For now, let's use the CLI for simplicity
+        # Note: MLX doesn't have a separate mixed-precision flag for embeddings
+        # Mixed precision would require post-processing with mlx.quantize API
+        # For now, uniform quantization is applied to all layers
 
         logger.debug(f"Running: {' '.join(cmd)}")
 
