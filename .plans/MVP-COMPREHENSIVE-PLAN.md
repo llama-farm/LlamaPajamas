@@ -59,6 +59,28 @@
     - 24 held-out evaluation samples (~5K tokens)
     - Metadata tracked for reproducibility
 
+- **Model-Specific Evaluation System** (NEW - COMPLETE)
+  - ✅ **Unified Evaluation Script** (`evaluate_model.py`)
+    - Evaluates one or more models in single command
+    - Saves to model-specific folders (gguf/*/evaluation.json, mlx/*/evaluation.json)
+    - Supports both GGUF and MLX formats
+    - 120-question benchmark: Knowledge, Math, Reasoning, Common Sense, Truthfulness, Tool Calling
+    - Flexible question count (10 for quick test, 50 for fast eval, 120 for full)
+  - ✅ **Rollup Comparison Script** (`compare_evaluations.py`)
+    - Scans all evaluation.json files in model directory
+    - Generates comprehensive markdown: models/{model}/EVALUATION_REPORT.md
+    - Overall performance table with accuracy, speed, and size
+    - Category breakdown across all models
+    - Key insights and size vs quality analysis
+  - ✅ **Complete Documentation** (`EVALUATION_README.md`)
+    - Usage examples and workflow
+    - Commands for GGUF and MLX evaluation
+    - Directory structure and troubleshooting
+  - ✅ **Tested Successfully**
+    - IQ2_XS: 100% accuracy on 10-question test
+    - JSON output validated
+    - Markdown report generation verified
+
 ### 🔄 In Progress (Current Sprint)
 - **Evaluation & Comparison**
   - 🔄 Benchmark IQ2_XS vs Q3_K_M vs Q4_K_M
@@ -69,12 +91,13 @@
 
 #### High Priority (Next 24-48 hours)
 1. **Comprehensive Evaluation** ← CURRENT FOCUS
-   - [ ] Benchmark IQ2_XS on full 140-question suite
-   - [ ] Store evaluation results in model-specific folders:
-     - `models/qwen3-8b/gguf/IQ2_XS/evaluation.json`
-     - `models/qwen3-8b/gguf/Q3_K_M/evaluation.json`
-     - `models/qwen3-8b/gguf/Q4_K_M/evaluation.json`
-   - [ ] Compare: IQ2_XS (3.3GB) vs Q3_K_M (3.8GB) vs Q4_K_M (4.7GB)
+   - [x] ✅ Create unified evaluation system with model-specific output
+   - [x] ✅ Create rollup comparison script for markdown reports
+   - [x] ✅ Test evaluation workflow (IQ2_XS: 100% on 10-question test)
+   - [ ] Run full evaluation on all models:
+     - IQ2_XS (3.3GB), Q3_K_M (3.8GB), Q4_K_M (4.7GB) - GGUF
+     - 2bit-mixed (2.4GB), 4bit-mixed (4.3GB) - MLX
+   - [ ] Generate comprehensive comparison report
    - [ ] Validate if IQ2_XS quality ≈ Q4_K_M (would be 30% size win!)
 
 2. **Complete MLX 2-bit/3-bit**
