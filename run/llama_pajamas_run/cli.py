@@ -109,14 +109,17 @@ def run_interactive(
                 continue
 
             print("Assistant: ", end="", flush=True)
-            response = runtime.generate(
+
+            # Stream response token by token
+            for token in runtime.generate(
                 user_input,
                 max_tokens=200,
                 temperature=0.7,
-                stream=False
-            )
-            print(response)
-            print()
+                stream=True
+            ):
+                print(token, end="", flush=True)
+
+            print("\n")
 
     except KeyboardInterrupt:
         print("\n\nExiting...")
