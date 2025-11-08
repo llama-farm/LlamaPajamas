@@ -12,6 +12,13 @@ from .converters import (
     GGUFConverter,
     MLXConverter,
 )
+from .evaluator import (
+    ModelEvaluator,
+    LLMJudge,
+    EvaluationPrompt,
+    EvaluationResult,
+    ModelEvaluation,
+)
 
 __version__ = "0.1.0"
 
@@ -24,4 +31,9 @@ __all__ = [
     "Quantizer",
     "GGUFConverter",
     "MLXConverter",
+    "ModelEvaluator",
+    "LLMJudge",
+    "EvaluationPrompt",
+    "EvaluationResult",
+    "ModelEvaluation",
 ]

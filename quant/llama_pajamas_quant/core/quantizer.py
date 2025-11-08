@@ -8,6 +8,7 @@ from .detector import ArchitectureDetector
 from .manifest import ManifestGenerator
 from ..converters.gguf import GGUFConverter
 from ..converters.mlx import MLXConverter
+from ..evaluator import ModelEvaluator
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,8 @@ class Quantizer:
         gguf_precision: str = "Q4_K_M",
         mlx_bits: int = 4,
         mlx_mixed_precision: bool = True,
+        evaluate: bool = False,
+        judge_model: str = "gpt-5-nano",
     ) -> Dict[str, Any]:
         """Convert model to multiple formats with architecture-aware quantization.
 
@@ -37,6 +40,7 @@ class Quantizer:
         1. Detects the model architecture
         2. Converts to requested formats (GGUF, MLX, or both)
         3. Generates a unified manifest.json
+        4. Optionally evaluates quantized models using LLM-as-judge
 
         Args:
             model_path: HuggingFace model ID or local path
@@ -45,19 +49,23 @@ class Quantizer:
             gguf_precision: GGUF quantization method (default: Q4_K_M)
             mlx_bits: MLX quantization bits (default: 4)
             mlx_mixed_precision: Use mixed precision for MLX (default: True)
+            evaluate: Run LLM-as-judge evaluation after quantization (default: False)
+            judge_model: OpenAI model to use for evaluation (default: gpt-5-nano)
 
         Returns:
-            Dictionary with conversion results and paths
+            Dictionary with conversion results, paths, and optional evaluations
 
         Example:
             >>> quantizer = Quantizer()
             >>> result = quantizer.convert(
             ...     "Qwen/Qwen3-8B",
             ...     "./models/qwen3-8b",
-            ...     formats=["gguf", "mlx"]
+            ...     formats=["gguf", "mlx"],
+            ...     evaluate=True  # Auto-evaluate with GPT-5 nano
             ... )
             >>> print(f"GGUF: {result['gguf']['size_gb']:.2f} GB")
             >>> print(f"MLX: {result['mlx']['size_gb']:.2f} GB")
+            >>> print(f"Quality: {result['evaluations']['mlx'].avg_quality:.1f}/10")
         """
         model_path = str(model_path)
         output_dir = Path(output_dir)
@@ -161,10 +169,67 @@ class Quantizer:
         logger.info("=" * 70)
         logger.info("")
 
+        # Optional: Evaluate quantized models
+        evaluations = {}
+        if evaluate:
+            logger.info("=" * 70)
+            logger.info("Running LLM-as-Judge Evaluation")
+            logger.info("=" * 70)
+            logger.info(f"Judge Model: {judge_model}")
+            logger.info("")
+
+            evaluator = ModelEvaluator(judge_model=judge_model)
+
+            # Evaluate MLX model
+            if "mlx" in results:
+                mlx_path = results["mlx"]["model_path"]
+                mlx_config = {
+                    "quantization": "mlx",
+                    "bits": mlx_bits,
+                    "mixed_precision": mlx_mixed_precision,
+                }
+
+                mlx_eval = evaluator.evaluate_mlx(mlx_path, mlx_config)
+                evaluations["mlx"] = mlx_eval
+
+                # Save evaluation
+                eval_path = output_dir / "evaluation_mlx.json"
+                evaluator.save_evaluation(mlx_eval, str(eval_path))
+
+            # Evaluate GGUF model
+            if "gguf" in results:
+                gguf_path = results["gguf"]["model_path"]
+                gguf_config = {
+                    "quantization": "gguf",
+                    "precision": gguf_precision,
+                }
+
+                gguf_eval = evaluator.evaluate_gguf(gguf_path, gguf_config)
+                evaluations["gguf"] = gguf_eval
+
+                # Save evaluation
+                eval_path = output_dir / "evaluation_gguf.json"
+                evaluator.save_evaluation(gguf_eval, str(eval_path))
+
+            # Print comparison if both formats evaluated
+            if len(evaluations) > 1:
+                logger.info("\n" + "=" * 70)
+                logger.info("EVALUATION COMPARISON")
+                logger.info("=" * 70)
+                for fmt, eval_result in evaluations.items():
+                    logger.info(f"\n{fmt.upper()}:")
+                    logger.info(f"  Quality:   {eval_result.avg_quality:.1f}/10")
+                    logger.info(f"  Accuracy:  {eval_result.avg_accuracy:.1f}/10")
+                    logger.info(f"  Coherence: {eval_result.avg_coherence:.1f}/10")
+                    logger.info(f"  Speed:     {eval_result.avg_generation_time:.2f}s/prompt")
+                logger.info("=" * 70)
+                logger.info("")
+
         return {
             "architecture": arch.to_dict(),
             "strategy": strategy,
             "results": results,
             "manifest": manifest,
+            "evaluations": evaluations,
             "output_dir": str(output_dir),
         }
