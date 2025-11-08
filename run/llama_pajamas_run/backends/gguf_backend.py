@@ -136,19 +136,28 @@ class GGUFBackend(Backend):
         if not self.model:
             raise RuntimeError("Model not loaded. Call load_model() first.")
 
-        # Build template kwargs for Qwen3-style thinking control
-        template_kwargs = {}
-        if enable_thinking is not None:
-            template_kwargs["enable_thinking"] = enable_thinking
+        # For Qwen3-style thinking control, inject a system message
+        final_messages = messages.copy()
+        if enable_thinking is False:
+            # Add system instruction to skip thinking
+            no_thinking_instruction = {
+                "role": "system",
+                "content": "Respond directly and concisely without showing your reasoning process or using <think> tags."
+            }
+            # Insert at beginning if no system message, or append to existing
+            if not final_messages or final_messages[0].get("role") != "system":
+                final_messages.insert(0, no_thinking_instruction)
+            else:
+                # Append to existing system message
+                final_messages[0]["content"] += "\n\n" + no_thinking_instruction["content"]
 
         response = self.model.create_chat_completion(
-            messages=messages,
+            messages=final_messages,
             max_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,
             stop=stop,
             stream=stream,
-            **template_kwargs
         )
 
         return response
