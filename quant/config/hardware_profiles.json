@@ -1,0 +1,349 @@
+{
+  "_comment": "Hardware-optimized runtime configurations for llama-pajamas",
+  "_source": "Based on .plans/runtime-optimizations.md empirical guidance",
+
+  "apple_silicon_m1_8gb": {
+    "display_name": "Apple M1 (8GB)",
+    "backend": "metal",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q3_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 4,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 50,
+        "notes": "Limited VRAM - prefer Q3_K_M for larger contexts"
+      }
+    }
+  },
+
+  "apple_silicon_m1_16gb": {
+    "display_name": "Apple M1 (16GB)",
+    "backend": "metal",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q5_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 4,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 60
+      },
+      "13B": {
+        "precision": ["Q4_K_M", "Q3_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 4,
+        "n_batch": 512,
+        "n_ubatch": 12,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 35
+      }
+    }
+  },
+
+  "apple_silicon_m2_16gb": {
+    "display_name": "Apple M2 (16GB)",
+    "backend": "metal",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q5_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 4,
+        "n_batch": 768,
+        "n_ubatch": 24,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 65,
+        "notes": "M2 benefits from larger batches"
+      },
+      "13B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 4,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 40
+      }
+    }
+  },
+
+  "apple_silicon_m3_16gb": {
+    "display_name": "Apple M3 (16GB)",
+    "backend": "metal",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q5_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 1024,
+        "n_ubatch": 32,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 70,
+        "notes": "M3 benefits from larger batches and more threads"
+      },
+      "13B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 768,
+        "n_ubatch": 24,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 45
+      }
+    }
+  },
+
+  "apple_silicon_m1_64gb": {
+    "display_name": "Apple M1 Max/Ultra (64GB)",
+    "backend": "metal",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q5_K_M", "Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 1024,
+        "n_ubatch": 32,
+        "n_ctx": 8192,
+        "expected_tokens_per_sec": 75,
+        "notes": "Large VRAM allows higher precision and larger contexts"
+      },
+      "13B": {
+        "precision": ["Q5_K_M", "Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 768,
+        "n_ubatch": 24,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 50
+      },
+      "30B+": {
+        "precision": ["Q4_K_M", "Q3_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 25
+      }
+    }
+  },
+
+  "nvidia_rtx_3060_12gb": {
+    "display_name": "NVIDIA RTX 3060 (12GB)",
+    "backend": "cuda",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 1024,
+        "n_ubatch": 32,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 55
+      },
+      "13B": {
+        "precision": ["Q3_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 30
+      }
+    }
+  },
+
+  "nvidia_rtx_3090_24gb": {
+    "display_name": "NVIDIA RTX 3090 (24GB)",
+    "backend": "cuda",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q5_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 2048,
+        "n_ubatch": 64,
+        "n_ctx": 8192,
+        "expected_tokens_per_sec": 100,
+        "notes": "Desktop VRAM allows very large prompt batches"
+      },
+      "13B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 1024,
+        "n_ubatch": 32,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 60
+      },
+      "30B+": {
+        "precision": ["Q4_K_M", "Q3_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 30
+      }
+    }
+  },
+
+  "nvidia_rtx_4090_24gb": {
+    "display_name": "NVIDIA RTX 4090 (24GB)",
+    "backend": "cuda",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q5_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 2048,
+        "n_ubatch": 64,
+        "n_ctx": 8192,
+        "expected_tokens_per_sec": 120,
+        "notes": "Top-tier desktop GPU"
+      },
+      "13B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 1024,
+        "n_ubatch": 32,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 65
+      },
+      "30B+": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 768,
+        "n_ubatch": 24,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 35
+      }
+    }
+  },
+
+  "nvidia_tesla_a100_40gb": {
+    "display_name": "NVIDIA A100 (40GB)",
+    "backend": "cuda",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q5_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 16,
+        "n_batch": 2048,
+        "n_ubatch": 64,
+        "n_ctx": 8192,
+        "expected_tokens_per_sec": 130,
+        "notes": "Datacenter GPU - maximize batch size"
+      },
+      "13B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 16,
+        "n_batch": 1536,
+        "n_ubatch": 48,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 75
+      },
+      "30B+": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 16,
+        "n_batch": 1024,
+        "n_ubatch": 32,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 45
+      }
+    }
+  },
+
+  "amd_gpu_20gb": {
+    "display_name": "AMD RX 7900 XT/XTX (20-24GB)",
+    "backend": "rocm",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 768,
+        "n_ubatch": 24,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 80,
+        "notes": "ROCm requires moderate batches"
+      },
+      "13B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": -1,
+        "n_threads": 8,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 45
+      }
+    }
+  },
+
+  "linux_cpu_16gb": {
+    "display_name": "Linux CPU (16GB RAM)",
+    "backend": "cpu",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M", "Q3_K_M"],
+        "n_gpu_layers": 0,
+        "n_threads": 8,
+        "n_batch": 512,
+        "n_ubatch": 8,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 15,
+        "notes": "CPU-only - prefer smaller models and contexts"
+      }
+    }
+  },
+
+  "linux_cpu_64gb": {
+    "display_name": "Linux CPU (64GB RAM)",
+    "backend": "cpu",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": 0,
+        "n_threads": 16,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 4096,
+        "expected_tokens_per_sec": 20,
+        "notes": "Server CPU with more RAM"
+      },
+      "13B": {
+        "precision": ["Q4_K_M", "Q3_K_M"],
+        "n_gpu_layers": 0,
+        "n_threads": 16,
+        "n_batch": 512,
+        "n_ubatch": 16,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 12
+      }
+    }
+  },
+
+  "generic": {
+    "display_name": "Generic/Unknown Hardware",
+    "backend": "cpu",
+    "recommended_models": {
+      "7-8B": {
+        "precision": ["Q4_K_M"],
+        "n_gpu_layers": 0,
+        "n_threads": 4,
+        "n_batch": 256,
+        "n_ubatch": 8,
+        "n_ctx": 2048,
+        "expected_tokens_per_sec": 10,
+        "notes": "Conservative defaults for unknown hardware"
+      }
+    }
+  }
+}

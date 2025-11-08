@@ -1,0 +1,20 @@
+[project]
+name = "llama-pajamas-run-core"
+version = "0.1.0"
+description = "Core abstractions for Llama-Pajamas runtime backends"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "httpx>=0.24.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
