@@ -112,24 +112,57 @@
    - [ ] Recommendation matrix (use case → optimal quantization)
 
 #### Medium Priority (This Week)
-4. **Quality Validation**
+4. **Hardware-Optimized Runtime Configurations** ← NEW PRIORITY
+   - [ ] Implement hardware detection system
+     - Detect: Apple Silicon (M1/M2/M3), NVIDIA (RTX/Jetson), AMD (GPU/CPU), Intel CPU, ARM CPU
+     - Identify: VRAM/RAM, core count (performance/efficiency), GPU generation
+   - [ ] Generate hardware-specific config presets
+     - Per-hardware optimal settings: gpu-layers, batch sizes, thread count, context length
+     - GGUF backend selection: Metal/CUDA/ROCm/Vulkan/CPU
+     - MLX-specific tuning for Apple Silicon variants
+   - [ ] Create `hardware_profiles.json` with presets:
+     - **Apple Silicon**: M1/M2/M3 (8GB/16GB/32GB/64GB variants)
+     - **NVIDIA Desktop**: RTX 3060-4090, Tesla series
+     - **NVIDIA Edge**: Jetson Nano/Xavier/Orin
+     - **AMD GPU**: RX 7000 series, MI series (ROCm)
+     - **Intel/AMD CPU**: Desktop/Server (AVX2/AVX-512/VNNI)
+     - **ARM**: Graviton, Ampere, generic ARM servers
+     - **Mobile** (future): Android (Snapdragon/Dimensity/Exynos/Tensor), iOS
+   - [ ] Implement auto-configuration script (`scripts/detect_hardware.py`)
+     - Detects hardware automatically
+     - Outputs recommended runtime config JSON
+     - Includes: backend, gpu_layers, prompt_batch, decode_batch, threads, context_size
+   - [ ] Create runtime config validation
+     - Test configs don't exceed available VRAM/RAM
+     - Warn about thermal throttling risks (mobile, small form factor)
+     - Suggest downgrades if resources insufficient
+   - [ ] Generate hardware-specific README sections
+     - Quick-start commands per hardware type
+     - Expected performance (tokens/sec, memory usage)
+     - Troubleshooting per platform
+
+5. **Quality Validation**
    - [ ] Perplexity measurements on WikiText-2
    - [ ] Generation quality comparison (qualitative)
    - [ ] Document quality thresholds
 
-5. **Performance Benchmarking**
+6. **Performance Benchmarking**
    - [ ] Tokens/second measurements
    - [ ] Memory usage profiling
    - [ ] Load time comparisons
 
-6. **Comprehensive Comparison**
+7. **Comprehensive Comparison**
    - [ ] Run compare_all_quantizations.py
    - [ ] Generate accuracy vs size vs speed charts
    - [ ] Identify optimal quantization for different use cases
 
 #### Lower Priority (Future)
-7. **GPT-OSS-20B MoE Support** (Deferred to post-MVP)
-8. **Additional Formats** (ONNX, TensorRT - post-MVP)
+8. **GPT-OSS-20B MoE Support** (Deferred to post-MVP)
+9. **Additional Formats** (ONNX, TensorRT - post-MVP)
+10. **Mobile Platform Optimization** (post-MVP)
+   - Android chipset-specific configs (Snapdragon/Dimensity/Exynos/Tensor)
+   - iOS/iPadOS thermal management
+   - Sustained performance mode integration
 
 ### 📁 Project Structure
 ```
