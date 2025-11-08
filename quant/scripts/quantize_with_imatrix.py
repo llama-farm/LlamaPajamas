@@ -77,7 +77,6 @@ class IMatrixQuantizer:
         output_path: Path,
         n_ctx: int = 2048,
         n_chunks: int = 100,
-        verbosity: int = 1,
     ) -> Path:
         """Generate importance matrix from calibration data.
 
@@ -87,7 +86,6 @@ class IMatrixQuantizer:
             output_path: Path to save imatrix file
             n_ctx: Context length for processing
             n_chunks: Number of chunks to process from calibration data
-            verbosity: Verbosity level (0-2)
 
         Returns:
             Path to generated imatrix file
@@ -108,7 +106,6 @@ class IMatrixQuantizer:
             "-ngl", "99",  # Offload all layers to GPU if available
             "-c", str(n_ctx),
             "--chunks", str(n_chunks),
-            "-v", str(verbosity),
         ]
 
         print(f"\nRunning: {' '.join(cmd)}\n")
@@ -161,18 +158,24 @@ class IMatrixQuantizer:
         print(f"Precision: {precision}")
         print(f"IMatrix: {imatrix_file}")
 
-        cmd = [
-            str(self.quantize_bin),
-            str(input_model),
-            str(output_model),
-            precision,
-            "--imatrix", str(imatrix_file),
-        ]
+        # Build command - flags must come BEFORE positional arguments
+        cmd = [str(self.quantize_bin)]
 
+        # Add flags first
         if leave_output_tensor:
             cmd.append("--leave-output-tensor")
         if pure:
             cmd.append("--pure")
+
+        # Add imatrix flag
+        cmd.extend(["--imatrix", str(imatrix_file)])
+
+        # Add positional arguments last
+        cmd.extend([
+            str(input_model),
+            str(output_model),
+            precision,
+        ])
 
         print(f"\nRunning: {' '.join(cmd)}\n")
 
