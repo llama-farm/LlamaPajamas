@@ -118,13 +118,28 @@ class GGUFBackend(Backend):
         top_p: float = 0.9,
         stop: Optional[List[str]] = None,
         stream: bool = False,
+        enable_thinking: Optional[bool] = None,
     ) -> Dict[str, Any] | Iterator[Dict[str, Any]]:
         """Generate OpenAI-compatible chat completion.
 
         Uses the model's built-in chat template from metadata.
+
+        Args:
+            messages: Chat messages in OpenAI format
+            max_tokens: Maximum tokens to generate
+            temperature: Sampling temperature
+            top_p: Nucleus sampling parameter
+            stop: Stop sequences
+            stream: Enable streaming
+            enable_thinking: Control <think> tags (True=allow, False=disable, None=model default)
         """
         if not self.model:
             raise RuntimeError("Model not loaded. Call load_model() first.")
+
+        # Build template kwargs for Qwen3-style thinking control
+        template_kwargs = {}
+        if enable_thinking is not None:
+            template_kwargs["enable_thinking"] = enable_thinking
 
         response = self.model.create_chat_completion(
             messages=messages,
@@ -133,6 +148,7 @@ class GGUFBackend(Backend):
             top_p=top_p,
             stop=stop,
             stream=stream,
+            **template_kwargs
         )
 
         return response

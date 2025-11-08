@@ -58,7 +58,8 @@ def run_interactive(
     model_size: str = "7-8B",
     use_case: str = "general",
     backend: Optional[str] = None,
-    verbose: bool = False
+    verbose: bool = False,
+    no_thinking: bool = False
 ):
     """Run interactive chat session."""
     # Auto-configure if requested
@@ -117,12 +118,17 @@ def run_interactive(
             # Use chat_completion if available (GGUF), otherwise fallback to generate
             if hasattr(runtime, 'chat_completion'):
                 # Stream chat completion (uses model's chat template)
-                response_chunks = runtime.chat_completion(
-                    messages=messages,
-                    max_tokens=200,
-                    temperature=0.7,
-                    stream=True
-                )
+                # Pass enable_thinking parameter if no_thinking flag is set
+                kwargs = {
+                    "messages": messages,
+                    "max_tokens": 200,
+                    "temperature": 0.7,
+                    "stream": True,
+                }
+                if no_thinking:
+                    kwargs["enable_thinking"] = False
+
+                response_chunks = runtime.chat_completion(**kwargs)
 
                 assistant_message = ""
                 for chunk in response_chunks:
@@ -213,6 +219,11 @@ Examples:
         action="store_true",
         help="Enable verbose output"
     )
+    parser.add_argument(
+        "--no-thinking",
+        action="store_true",
+        help="Disable chain-of-thought reasoning (for models that support it)"
+    )
 
     args = parser.parse_args()
 
@@ -223,7 +234,8 @@ Examples:
         model_size=args.model_size,
         use_case=args.use_case,
         backend=args.backend,
-        verbose=args.verbose
+        verbose=args.verbose,
+        no_thinking=args.no_thinking
     )
 
 
