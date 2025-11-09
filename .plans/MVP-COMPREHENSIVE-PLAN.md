@@ -10,9 +10,9 @@
 
 ---
 
-## 🎯 Current Progress (Week 3 - Advanced Quantization Phase)
+## 🎯 Current Progress (v0.1.0 Complete + v0.2.0 Week 1-2 Complete)
 
-### ✅ Completed (Weeks 1-3)
+### ✅ Completed (v0.1.0 MVP - Weeks 1-3)
 - **Quantization Pipeline** (`llama-pajamas-quant`)
   - ✅ Dual-format conversion (GGUF + MLX) working
   - ✅ Qwen3-8B → Multiple precision levels:
@@ -81,80 +81,148 @@
     - JSON output validated
     - Markdown report generation verified
 
-### 🔄 In Progress (Current Sprint - Parallel Tracks)
+### ✅ Completed (v0.2.0 Week 1-2 - Multi-Modal Infrastructure)
 
-**Track 1: Evaluation & Comparison** (Week 3 MVP)
-  - 🔄 Benchmark IQ2_XS vs Q3_K_M vs Q4_K_M
-  - 🔄 Validate quality improvement from importance matrix
+- ✅ **Extended run-core** with multi-modal base classes:
+  - `vision_base.py` - VisionBackend ABC with detect/classify/embed methods
+  - `speech_base.py` - STTBackend and TTSBackend ABCs
+  - Complete data models (DetectionResult, TranscriptionResult, etc.)
+
+- ✅ **Created run-coreml package** (Apple Silicon multi-modal):
+  - Backend stubs: CoreMLVisionBackend, CoreMLSTTBackend, CoreMLTTSBackend
+  - Package structure with converters directory
+  - CLI with detect/classify/transcribe/synthesize commands
+  - Dependencies: coremltools, Pillow, librosa, soundfile
+
+- ✅ **OpenAI-Compatible Multi-Modal API Server**:
+  - `server_multimodal.py` - Extended FastAPI server
+  - Vision endpoints: `/v1/images/{detect,classify,embed}`
+  - Speech endpoints: `/v1/audio/{transcriptions,speech}` (100% OpenAI-compatible)
+  - Health check and model listing
+  - Complete API documentation with curl and Python examples
+
+- ✅ **Documentation**:
+  - README.md with 8-week roadmap
+  - API_EXAMPLES.md with all endpoint examples
+  - Architecture diagrams
+
+### 🔄 In Progress (Current Sprint)
+
+**Track 1: CoreML Multi-Modal (v0.2.0 Week 3 Days 1-3)** ← **CURRENT FOCUS**
+  - ✅ **Day 1-2: Converter Infrastructure COMPLETE**
+    - ✅ Created base converter classes (CoreMLConverter, CoreMLConverterConfig)
+    - ✅ Implemented YOLOv8Converter (using ultralytics built-in CoreML export)
+    - ✅ Implemented CLIPConverter (with wrapper for dict output handling)
+    - ✅ Implemented ViTConverter (with wrapper for dict output handling)
+    - ✅ ANE optimization: FP16 precision, compute_units="ALL"
+    - ✅ All converters tested successfully:
+      - YOLO: 6.1 MB FP16, 16-75ms inference
+      - CLIP: 167 MB, 15-70ms, semantic similarity working (cat1↔cat2: 0.83)
+      - ViT: 165 MB, 18-75ms, 76.8% accuracy on test images
+
+  - ✅ **Day 2-3: Shared Vision Utilities (Architecture Refactoring)**
+    - ✅ Moved vision_utils.py to shared core (run-core/llama_pajamas_run_core/utils/)
+    - ✅ Follows GGUF/MLX pattern: shared utilities in core, runtime-specific in run-coreml
+    - ✅ Uses proper data structures: DetectionResult, ClassificationResult, BoundingBox
+    - ✅ Runtime-agnostic preprocessing/postprocessing:
+      - preprocess_image() - PIL Image handling
+      - postprocess_yolo_detections() - Returns DetectionResult objects
+      - postprocess_vit_classification() - Returns ClassificationResult objects
+      - postprocess_clip_embedding() - L2 normalization
+      - compute_cosine_similarity() - Embedding comparison
+      - get_coco_class_names() - 80 COCO classes
+
+  - 🔄 **Day 4 (Next): VisionBackend Implementation**
+    - [ ] Create run-coreml/llama_pajamas_run_coreml/backends/vision.py
+    - [ ] Implement VisionBackend interface from core
+    - [ ] Integrate converters with runtime
+    - [ ] Support detection, classification, embedding modes
+    - [ ] End-to-end API testing
+
+  - ⏳ **Day 5: Evaluation Dataset & Benchmarking**
+    - [ ] Download Open Images v7 dataset (200-300 images)
+    - [ ] Build benchmarking infrastructure (like LLM benchmarks)
+    - [ ] Track: FPS, latency, accuracy, ANE utilization
+    - [ ] Compare: FP32 vs FP16, CPU vs GPU vs ANE
+
+**Track 2: Evaluation & Comparison** (Week 3 MVP - On Hold)
+  - ⏳ Benchmark IQ2_XS vs Q3_K_M vs Q4_K_M
+  - ⏳ Validate quality improvement from importance matrix
   - ⏳ Document size/quality tradeoffs
 
-**Track 2: ONNX Integration** (Week 1-2, CoreML First) ← **MAJOR PROGRESS**
+**Track 3: ONNX Integration** (PAUSED - Too Universal, Not Hardware-Optimized)
+  - ⚠️ **PAUSED**: ONNX is too universal and doesn't align with hardware-optimization focus
+  - ⚠️ **Code preserved** but marked incomplete until we have a clear hardware-specific use case
+
   - ✅ **Day 1-2 COMPLETE**: Package structure + dependencies
     - ✅ Created `quant/llama_pajamas_quant/optimizers/` (graph optimizations)
     - ✅ Created `run-onnx/llama_pajamas_run_onnx/` (runtime package)
     - ✅ Added ONNX dependencies: onnx>=1.15.0, onnxruntime>=1.17.0, optimum>=1.16.0, onnxscript>=0.5.0, onnxsim>=0.4.0
-    - ✅ Installed all dependencies successfully
 
   - ✅ **Day 3-5 COMPLETE**: Full pipeline implementation + bloat analysis
-    - ✅ **ONNXConverter** (`converters/onnx.py`):
-      - Implemented full converter with optimum-based export
-      - FP16 export using `optimum.exporters.onnx.main_export`
-      - User-specified target_specs (CoreML, TensorRT, CPU)
-      - Memory-efficient export (seq_length=256, direct FP16)
-      - External data file handling for large models
-      - Automatic temp file cleanup
-      - onnxsim integration for bloat reduction (optional)
+    - ✅ ONNXConverter, ONNXGraphOptimizer, ONNXQuantizer implemented
+    - ✅ Tested on Qwen3-1.7B (FP16 export: 6.4GB with 1.9x bloat from tied weights)
+    - ✅ INT8/INT4 quantization support added
+    - ✅ CoreML, TensorRT, CPU backend code implemented
 
-    - ✅ **ONNXGraphOptimizer** (`optimizers/onnx_graph.py`):
-      - EP-specific graph optimizations (CoreML/TensorRT/CPU)
-      - ONNX Runtime transformer optimizations
-      - Operator fusion (LayerNorm, SkipLayerNorm)
-      - Removed redundant reshape operations (57 nodes)
-      - GQA metadata annotation (4:1 ratio)
-      - Layout preferences (NHWC for CoreML)
+  - ❌ **INCOMPLETE - PAUSED**:
+    - ❌ Runtime backends not fully tested
+    - ❌ End-to-end inference not validated
+    - ❌ Multi-format comparison not completed
+    - ❌ All ONNX models deleted (not hardware-optimized enough)
 
-    - ✅ **ONNXQuantizer** (`optimizers/onnx_quant.py`):
-      - Dynamic quantization (INT8 weights, FP32 activations)
-      - Per-channel quantization for accuracy
-      - CoreML symmetric quantization support
-      - External data format handling
+  - 📋 **NEXT STEPS** (when/if resumed):
+    - Must identify clear hardware-specific optimization case for ONNX
+    - Candidates: Qualcomm NPU, AMD XDNA, specific mobile chipsets
+    - Otherwise, focus on MLX (Apple), GGUF (CPU), ExecuTorch (mobile/edge)
 
-    - ✅ **Tested on Qwen3-1.7B** (switched from 8B for memory):
-      - FP16 export: 6.4GB (1.9x bloat from tied weights)
-      - Expected: ~3.4GB (1.7B params × 2 bytes)
-      - Bloat sources detected: tied embed_tokens/lm_head weights duplicated
-      - Graph optimizations: Fused 113 LayerNorms, 56 SkipLayerNorms
-      - 7668 ops in final graph
+### ⏳ TODO (v0.2.0 Continuation - Priority Order)
 
-    - ~~⚠️ **INT8 quantization blocked**~~: ✅ **FIXED** - Added `use_external_data_format=True` to all quantization methods
+#### High Priority (Week 3-4 - Next 2 Weeks)
+1. **🎯 CoreML Vision Implementation** ← **TOP PRIORITY**
+   - [ ] **Week 3 Tasks**:
+     - [ ] Create PyTorch → CoreML converter for YOLO-v8n
+     - [ ] Implement detection preprocessing (resize, normalize)
+     - [ ] Implement detection post-processing (NMS, confidence filtering)
+     - [ ] Test YOLO-v8n on Mac M1 64GB
+     - [ ] Benchmark FPS @ 640x640 (target: 30+ FPS)
+     - [ ] Create PyTorch → CoreML converter for CLIP
+     - [ ] Implement CLIP embedding pipeline
+     - [ ] Test CLIP embeddings (target: <50ms per image)
 
-  - ✅ **Day 6-7 COMPLETE**: Fix INT8 + Add INT4 support
-    - ✅ Fixed INT8 quantization with external data format (handles >2GB models)
-    - ✅ **INT4 support complete** via:
-      - MatMulNBits operators for CPU inference
-      - QDQ format for TensorRT (NVIDIA consumer GPUs + Jetson)
-    - ⏳ Testing INT4 quantization (target: ~0.85GB for Qwen3-1.7B)
-    - ⏳ Compare ONNX vs GGUF vs MLX on same model
+   - [ ] **Week 4 Tasks**:
+     - [ ] Create PyTorch → CoreML converter for ViT
+     - [ ] Implement ViT classification pipeline
+     - [ ] Test ViT classification (target: <30ms per image)
+     - [ ] ANE optimization across all models (FP16, NHWC layout)
+     - [ ] End-to-end API testing (curl + Python client)
+     - [ ] Performance optimization and benchmarking
+     - [ ] Documentation updates
 
-  - 🎯 **NVIDIA/Jetson Optimization Path** (TensorRT)
-    - ✅ **INT8 QDQ**: quantize_static with QuantFormat.QDQ
-    - ✅ **INT4 QDQ**: TensorRT 8.6+ with INT4 weight type
-    - ✅ Entropy calibration for better quality
-    - ✅ Per-channel quantization
-    - ✅ Asymmetric activations (better accuracy than symmetric)
-    - 📍 Target hardware: RTX 30XX/40XX, Jetson Orin, Jetson AGX Xavier
-    - 📍 Expected speedup: 2-3x vs FP16 on consumer NVIDIA GPUs
+2. **🎯 HARDWARE OPTIMIZATION FOCUS** ← **BACKGROUND RESEARCH**
+   - [ ] **Audit current hardware optimization state**:
+     - ✅ MLX: Apple Silicon optimized (Metal, unified memory)
+     - ✅ GGUF: Multi-hardware (Metal/CUDA/ROCm/CPU) via llama.cpp
+     - ❌ Mobile/Edge: Need ExecuTorch or similar
+     - ❌ NVIDIA-specific: TensorRT-LLM might be better than ONNX
+     - ❌ AMD-specific: ROCm + composable_kernel or MIGraphX
 
-  - ⏳ **Week 2**: CoreML runtime + Multi-format comparison
-    - ⏳ Implement CoreML backend runtime
-    - ⏳ Test on Mac M1 64GB (target: 50-70 tok/s)
-    - ⏳ Run Qwen3-1.7B through GGUF + MLX pipelines
-    - ⏳ Generate comprehensive 3-way comparison (ONNX INT4 vs GGUF Q4 vs MLX 4-bit)
+   - [ ] **Define hardware-specific optimization paths**:
+     - **Apple Silicon**: MLX (native, optimal) ✅
+     - **NVIDIA Desktop/Server**: GGUF+CUDA ✅ OR investigate TensorRT-LLM
+     - **NVIDIA Jetson**: ExecuTorch for edge OR GGUF+CUDA
+     - **AMD GPU**: GGUF+ROCm ✅ OR investigate MIGraphX
+     - **Intel CPU**: GGUF+CPU ✅ with AVX2/AVX-512/AMX
+     - **ARM CPU**: GGUF+CPU ✅ with NEON
+     - **Mobile (iOS/Android)**: ExecuTorch OR CoreML (iOS) OR NNAPI (Android)
 
-### ⏳ TODO (Week 3 - Priority Order)
+   - [ ] **Prioritize next hardware platform**:
+     - Option A: ExecuTorch for mobile/edge (iOS, Android, Jetson)
+     - Option B: TensorRT-LLM for NVIDIA (desktop + server optimization)
+     - Option C: Optimize current GGUF+MLX further (hardware profiles, auto-config)
+     - **Decision needed**: Which platform adds most value?
 
-#### High Priority (Next 24-48 hours)
-1. **Comprehensive Evaluation** ← CURRENT FOCUS
+2. **Comprehensive Evaluation** ← CONTINUE IN PARALLEL
    - [x] ✅ Create unified evaluation system with model-specific output
    - [x] ✅ Create rollup comparison script for markdown reports
    - [x] ✅ Test evaluation workflow (IQ2_XS: 100% on 10-question test)
@@ -164,19 +232,14 @@
    - [ ] Generate comprehensive comparison report
    - [ ] Validate if IQ2_XS quality ≈ Q4_K_M (would be 30% size win!)
 
-2. **Complete MLX 2-bit/3-bit**
+3. **Complete MLX 2-bit/3-bit**
    - [ ] Finish MLX 2-bit benchmarks (running in background)
    - [ ] Re-generate MLX 3-bit with fixed converter
    - [ ] Benchmark MLX 3-bit
    - [ ] Store results in: `models/qwen3-8b/mlx/{precision}/evaluation.json`
 
-3. **Generate Final Comparison Report**
-   - [ ] All 6 models evaluated with consistent methodology
-   - [ ] Accuracy vs Size vs Speed charts
-   - [ ] Recommendation matrix (use case → optimal quantization)
-
 #### Medium Priority (This Week)
-4. **Hardware-Optimized Runtime Configurations** ← NEW PRIORITY
+4. **Hardware-Optimized Runtime Configurations**
    - [ ] Implement hardware detection system
      - Detect: Apple Silicon (M1/M2/M3), NVIDIA (RTX/Jetson), AMD (GPU/CPU), Intel CPU, ARM CPU
      - Identify: VRAM/RAM, core count (performance/efficiency), GPU generation
@@ -312,12 +375,34 @@ llama-pajamas/
 │   └── llama_pajamas_run_mlx/
 ├── run-gguf/                 # GGUF runtime ✅
 │   └── llama_pajamas_run_gguf/
-└── run-onnx/                 # ← NEW ONNX runtime ⏳
-    └── llama_pajamas_run_onnx/
-        └── backends/
-            ├── coreml_backend.py  # ⏳ Week 2
-            ├── tensorrt_backend.py # ⏳ Week 3
-            └── cpu_backend.py      # ⏳ Week 4
+├── run-onnx/                 # ONNX runtime (PAUSED)
+│   └── llama_pajamas_run_onnx/
+│       └── backends/
+│           ├── coreml_backend.py  # Code complete, not tested
+│           ├── tensorrt_backend.py # Code complete, not tested
+│           └── cpu_backend.py      # Code complete, not tested
+└── run-coreml/               # ← CoreML runtime 🔄
+    └── llama_pajamas_run_coreml/
+        ├── backends/
+        │   ├── vision.py          # ⏳ In Progress (Day 4: VisionBackend)
+        │   ├── speech_stt.py      # ✅ Stub (Week 5-6: Implementation)
+        │   └── speech_tts.py      # ✅ Stub (Week 5-6: Implementation)
+        ├── converters/            # ✅ Week 3 Days 1-2: COMPLETE
+        │   ├── base.py            # ✅ CoreMLConverter ABC, config, validation
+        │   └── vision.py          # ✅ YOLO, CLIP, ViT converters (~400 lines)
+        ├── utils/                 # ✅ Week 3 Day 3: Imports from shared core
+        │   ├── __init__.py        # ✅ Re-exports vision utilities from core
+        │   └── image_utils.py     # ✅ CoreML-specific image utilities
+        └── server.py              # ✅ Multi-modal API server
+
+├── run-core/                 # ← Shared runtime (ENHANCED)
+    └── llama_pajamas_run_core/
+        ├── backends/
+        │   ├── vision_base.py     # ✅ VisionBackend ABC, data structures
+        │   └── speech_base.py     # ✅ STTBackend, TTSBackend ABCs
+        └── utils/                 # ✅ NEW: Shared utilities
+            ├── __init__.py        # ✅ Exports vision utilities
+            └── vision_utils.py    # ✅ Runtime-agnostic preprocessing/postprocessing
 ```
 
 ---
@@ -1419,55 +1504,196 @@ CMD ["llama-pajamas-run", "serve", \
 2. ✅ **Dual-format works**: MLX 10-20% faster on Mac, GGUF universal elsewhere
 3. ✅ **Architecture-awareness works**: MoE quality 2-5% better than naive quantization
 
-### After MVP: ONNX Integration (IN PROGRESS - v0.2.0)
+### After MVP: Hardware-Specific Optimization Paths (v0.2.0+)
 
-**✅ ONNX Integration Week 1 (Days 1-5) - MAJOR PROGRESS**:
+**⚠️ PIVOT FROM ONNX**: ONNX is too universal - refocusing on hardware-specific optimization
 
-- ✅ **Days 1-2: Foundation** (COMPLETE)
-  - Package structure: `converters/onnx.py`, `optimizers/onnx_graph.py`, `optimizers/onnx_quant.py`
-  - Dependencies: onnx, onnxruntime, optimum, onnxscript, onnxsim
-  - Runtime package: `run-onnx/llama_pajamas_run_onnx/`
+**See**: `.plans/HARDWARE-OPTIMIZATION-ROADMAP.md` for detailed roadmap
 
-- ✅ **Days 3-5: Full Pipeline Implementation** (COMPLETE)
-  - **ONNXConverter**: optimum-based export, user-specified targets, memory-efficient
-  - **ONNXGraphOptimizer**: EP-specific optimizations, ONNX Runtime transformer, operator fusion
-  - **ONNXQuantizer**: Dynamic INT8, per-channel, CoreML symmetric
-  - **Switched to Qwen3-1.7B** for memory efficiency (from 8B)
-  - **Bloat Analysis**: Discovered 1.9x bloat from tied weights (6.4GB vs 3.4GB expected)
-  - **Graph Optimizations**: Fused 169 operations (LayerNorm, SkipLayerNorm, redundant Reshapes)
-  - **Workflow**: `optimum export → onnxsim (optional) → graph optimizations → quantization`
+**🎯 Current Status (Hardware Optimization)**:
+- ✅ **Apple Silicon (LLMs)**: MLX fully optimized (Metal, unified memory, mixed precision)
+- ✅ **Multi-platform (LLMs)**: GGUF via llama.cpp (Metal/CUDA/ROCm/Vulkan/CPU)
+- ❌ **Apple Silicon (Vision/Speech)**: No CoreML pipeline yet
+- ❌ **NVIDIA (Vision/Speech)**: No TensorRT pipeline yet
+- ⏳ **NVIDIA (LLMs)**: Need to evaluate TensorRT-LLM vs GGUF+CUDA
+- ⏳ **Multi-Modal**: No vision+speech+LLM integration yet
 
-- 🔄 **Days 6-7: INT8 Fix + INT4 Support** (IN PROGRESS)
-  - ⏳ **Fix INT8**: Update quantizer to use external data format (avoid protobuf >2GB limit)
-  - ⏳ **Add INT4**: Implement MatMulNBits operators (target: ~1.7GB for Qwen3-1.7B)
-  - ⏳ **Multi-format comparison**: Run Qwen3-1.7B through GGUF + MLX + ONNX pipelines
-  - ⏳ **Bloat reduction**: Test onnxsim integration effectiveness on tied weights
+**❌ ONNX Integration (PAUSED - Code Preserved, Models Deleted)**:
+- ✅ **Days 1-5**: Full pipeline implemented (converter, optimizer, quantizer)
+- ✅ **Backends**: CoreML, TensorRT, CPU backend code complete
+- ❌ **INCOMPLETE**: Runtime not fully tested, end-to-end validation missing
+- ⚠️ **REASON FOR PAUSE**: ONNX is too universal, doesn't provide hardware-specific optimization
+- 📋 **IF RESUMED**: Need clear use case (Qualcomm NPU, AMD XDNA, specific mobile chipsets)
 
-**Key Technical Discoveries:**
-- **Bloat Issue**: ONNX "unties" tied weights (embed_tokens/lm_head duplicated)
-- **Solution**: onnxsim can deduplicate post-export (optional optimization step)
-- **Memory Management**: seq_length=256, direct FP16 export, automatic cleanup critical for M1 64GB
-- **Protobuf Limit**: Models >2GB need `use_external_data_format=True` in quantization
+**🚀 Prioritized Roadmap (v0.2.0 → v0.4.0)**:
 
-**🔄 Week 2: Runtime + Cross-Format Comparison**:
-- ⏳ CoreML runtime backend implementation
-- ⏳ Test on Mac M1 64GB (target: 50-70 tok/s)
-- ⏳ **3-way comparison** on Qwen3-1.7B:
-  - ONNX INT4 (~1.7GB) vs GGUF Q4_K_M (~?) vs MLX 4-bit (~?)
-  - Quality, speed, memory across all three formats
-  - Identify optimal format per use case
+**Phase 1: Apple Multi-Modal (v0.2.0) - 8 weeks** ← **IN PROGRESS**
 
-**⏳ Week 3-4: TensorRT + Edge + Polish**:
-- ⏳ TensorRT INT8/INT4 export + runtime (NVIDIA GPUs)
-- ⏳ Jetson optimization (edge devices)
-- ⏳ CPU backend (INT4 MatMulNBits for universal deployment)
-- ⏳ Unified CLI: single command for GGUF+MLX+ONNX export
-- ⏳ Documentation + v0.2.0 release
+**✅ Week 1-2: Infrastructure Setup (COMPLETE)**
+- ✅ Extended `run-core` with multi-modal base classes:
+  - `vision_base.py` - VisionBackend ABC (detect, classify, embed)
+  - `speech_base.py` - STTBackend and TTSBackend ABCs
+  - Updated `backends/__init__.py` with exports
+- ✅ Created `run-coreml` package structure:
+  - Backends: `vision.py`, `speech_stt.py`, `speech_tts.py` (stubs)
+  - Converters: Directory created (Week 3-6)
+  - CLI: `__main__.py` with argparse commands
+  - Dependencies: coremltools, Pillow, librosa, soundfile
+- ✅ Created OpenAI-compatible multi-modal API server:
+  - `server_multimodal.py` in run-core
+  - Vision endpoints: `/v1/images/{detect,classify,embed}`
+  - Speech endpoints: `/v1/audio/{transcriptions,speech}` (OpenAI-compatible)
+  - Health & models endpoints
+  - Full API documentation in `API_EXAMPLES.md`
+- ✅ Documentation: README.md with roadmap, API examples
 
-**Future Scale**:
+**✅ Week 3 Days 1-3: CoreML Vision Converters & Utilities (COMPLETE)**
+- ✅ Implemented PyTorch → CoreML converters for vision models
+  - ✅ **Base converter infrastructure** (`run-coreml/llama_pajamas_run_coreml/converters/`):
+    - `base.py` - CoreMLConverter ABC, CoreMLConverterConfig, validation, metadata
+    - `vision.py` - YOLOv8, CLIP, ViT converters (~400 lines)
+    - Fixed dict output issue with wrapper classes for CLIP/ViT
+
+  - ✅ **YOLO-v8n detection converter**:
+    - Using ultralytics built-in CoreML export with NMS
+    - Model size: 6.1 MB FP16
+    - Inference: 16-75ms per image
+    - Successfully detecting 1-2 objects per test image
+
+  - ✅ **CLIP-ViT-Base embedding converter**:
+    - Vision encoder extraction with wrapper
+    - Model size: 167 MB
+    - Inference: 15-70ms per image
+    - Semantic similarity working: cat1↔cat2 = 0.83
+
+  - ✅ **ViT-Base classification converter**:
+    - Classification pipeline with wrapper
+    - Model size: 165 MB
+    - Inference: 18-75ms per image
+    - Classification accuracy: 76.8% on Siamese cat
+
+  - ✅ **ANE optimization**: FP16 precision, compute_units="ALL", NHWC layout preferences
+
+- ✅ **Shared vision utilities** (architecture refactoring):
+  - ✅ Moved to shared core: `run-core/llama_pajamas_run_core/utils/vision_utils.py`
+  - ✅ Follows GGUF/MLX pattern: shared core + runtime-specific
+  - ✅ Runtime-agnostic preprocessing/postprocessing:
+    - `preprocess_image()` - Returns PIL.Image for CoreML
+    - `postprocess_yolo_detections()` - Returns DetectionResult objects
+    - `postprocess_vit_classification()` - Returns ClassificationResult objects
+    - `postprocess_clip_embedding()` - L2 normalization
+    - `compute_cosine_similarity()` - Embedding comparison
+    - `get_coco_class_names()` - 80 COCO classes
+    - `softmax()` - Probability computation
+  - ✅ Uses proper data structures from vision_base.py
+  - ✅ End-to-end test script validates full pipeline
+
+**🔄 Week 3 Days 4-5: VisionBackend & Evaluation (IN PROGRESS)**
+- [ ] **Day 4: VisionBackend Implementation**
+  - [ ] Create `run-coreml/llama_pajamas_run_coreml/backends/vision.py`
+  - [ ] Implement VisionBackend ABC from core
+  - [ ] Integrate converters with runtime (detect/classify/embed methods)
+  - [ ] Support model loading and caching
+  - [ ] End-to-end API integration test with streaming
+
+- [ ] **Day 5: Evaluation Dataset & Benchmarking**
+  - [ ] Download Open Images v7 dataset (200-300 diverse images)
+  - [ ] Build benchmarking infrastructure (like LLM benchmarks)
+  - [ ] Metrics: FPS, latency, accuracy, ANE utilization
+  - [ ] Compare: FP32 vs FP16, CPU vs GPU vs ANE
+  - [ ] Generate performance report
+
+**⏳ Week 5-6: CoreML Speech Implementation**
+- [ ] Whisper STT (streaming), FastSpeech2 TTS
+- [ ] Mel spectrogram on device
+- [ ] Target: <100ms STT latency, RT factor 0.3 for TTS
+
+**⏳ Week 7: Multi-Modal Integration**
+- [ ] CLIP + MLX LLM pipeline
+- [ ] LLaVA/Qwen-VL vision-language models
+- [ ] Zero-copy buffers (CoreML → MLX via unified memory)
+
+**⏳ Week 8: Testing + Release**
+- [ ] End-to-end multi-modal examples
+- [ ] Performance benchmarks
+- [ ] iOS deployment guide
+- [ ] v0.2.0 release
+
+**Why CoreML?**
+- ✅ Fills clear gap: MLX handles LLMs, CoreML handles vision/speech
+- ✅ Apple Neural Engine (ANE) acceleration
+- ✅ Zero-copy with MLX (unified memory)
+- ✅ Huge Mac/iOS market
+- ✅ Enables multi-modal applications
+- ✅ OpenAI-compatible API for easy integration
+
+---
+
+**Phase 2: NVIDIA Multi-Modal (v0.3.0) - 6 weeks** ← **HIGH PRIORITY**
+1. **TensorRT Vision** (Week 1-2):
+   - YOLO-v8, CLIP, engine caching
+   - FP16 + INT8 calibration
+   - Target: 60+ FPS @ 640x640 on RTX 4070
+
+2. **TensorRT Speech** (Week 3-4):
+   - Whisper STT, FastSpeech2 TTS
+   - CUDA graphs for low latency
+   - Streaming audio pipelines
+
+3. **TensorRT-LLM Evaluation** (Week 5):
+   - Benchmark vs GGUF+CUDA on RTX 4070, Jetson Orin, A100
+   - **Decision**: Add TRT-LLM if >50% faster, else stick with GGUF+CUDA
+
+4. **Integration + Release** (Week 6):
+   - Multi-modal pipeline (TRT vision → GGUF/TRT-LLM)
+   - DLPack zero-copy
+   - Jetson Orin testing
+
+**Why TensorRT?**
+- ✅ NVIDIA is largest deployment target
+- ✅ Vision/speech need hardware optimization (GGUF doesn't handle)
+- ✅ Jetson support for edge deployments
+- ⏳ TensorRT-LLM needs evaluation (vs GGUF+CUDA)
+
+---
+
+**Phase 3: Router + Optimization (v0.4.0) - 4 weeks** ← **MEDIUM PRIORITY**
+1. **Router Implementation** (Week 1-2):
+   - 3-stage routing (heuristics → intent → hardware)
+   - Target: <40ms overhead, 95%+ accuracy
+   - Telemetry: VRAM, temperature, latency SLOs
+
+2. **Hardware Profiles** (Week 3):
+   - Auto-detect: Apple Silicon, NVIDIA, AMD, Intel
+   - Generate optimal configs per hardware
+
+3. **Testing + Release** (Week 4):
+   - Router benchmarks
+   - Multi-hardware testing
+
+**Why Router?**
+- ✅ Enables smart multi-model deployments
+- ✅ Thermal/VRAM aware routing
+- ✅ Automatic hardware selection
+
+---
+
+**NOT Prioritized (Yet)**:
+- ❌ **ExecuTorch**: iOS covered by CoreML, Android market unclear
+- ❌ **MIGraphX**: GGUF+ROCm is good enough for AMD
+- ❌ **IPEX-LLM**: GGUF+CPU is good enough for Intel
+- ❌ **OpenVINO**: Niche CPU-only market
+
+**📋 Decision Framework**:
+- **Prioritize platforms where users have clear pain points** (e.g., mobile, specific GPUs)
+- **Avoid "nice to have" optimizations** if GGUF+MLX already cover 80%+ of use cases
+- **Focus on 10x improvements**, not 10% improvements
+- **User research**: What hardware are people actually deploying on?
+
+**Future Scale** (after hardware platform decisions):
 - More models (Qwen2.5-7B, Qwen3-30B-A3B, Gemma 3, etc.)
-- Vision/STT/TTS (Phase 5-7, see ONNX-INTEGRATION-PLAN.md)
-- More backends (AMD ROCm, Qualcomm NPU, Intel)
+- Vision/STT/TTS (if there's a hardware-specific angle)
+- Platform-specific tooling and documentation
 
 **Scale vertically**:
 - Advanced quantization (per-layer sensitivity, mixed precision optimization)
@@ -1493,3 +1719,85 @@ CMD ["llama-pajamas-run", "serve", \
 **Ready to start**: Implementation plan complete, risks identified, success criteria defined.
 
 **Ship it** 🚀
+
+
+## Week 3-4 Completion Summary (CoreML Vision + Evaluation)
+
+### Completed Features
+
+**1. CoreML Vision Runtime** ✅
+- PyTorch → CoreML model converters (YOLO-v8n, ViT-Base, CLIP-ViT-Base)
+- CoreMLVisionBackend with ANE optimization
+- Shared vision utilities following GGUF/MLX pattern
+- Auto-detection of model input sizes and parameters
+
+**2. Comprehensive Evaluation Suite** ✅
+
+#### LLM Evaluation
+- **140 standardized questions** loaded from JSON
+  - Knowledge (25), Common Sense (20), Math (25)
+  - Reasoning (20), Truthfulness (20), Tool Calling (30)
+- **20 extended questions** for advanced testing
+  - Complex tool calling, summarization, code generation, long context
+- **Optional LLM-as-judge** for open-ended evaluation (GPT-4/Claude-3)
+- **Tested results**: qwen3-8b GGUF (90%), MLX (87.5%)
+
+#### Vision Evaluation
+- **176 diverse images** from Open Images V7 validation set (CC BY 4.0)
+- **Evaluation results** on 92 images:
+  - YOLO-v8n: 22.6 FPS, 44.2ms latency, 302 detections, 49 classes
+  - ViT-Base: 21.8 FPS, 45.9ms latency, 55.9% top-1 confidence
+  - CLIP-ViT-Base: 19.9 FPS, 50.2ms latency, 768-dim embeddings
+- **Auto-generated reports** (JSON + markdown)
+
+**3. Infrastructure Improvements** ✅
+- Centralized `quant/evaluation/` directory
+- Open Images V7 downloader (41k+ images available)
+- Evaluation results saved alongside models
+- Shared core pattern: vision_utils in run-core
+- Extensible JSON-based question format
+
+### Files Added
+```
+quant/evaluation/
+├── README.md (comprehensive documentation)
+├── llm/
+│   ├── questions.json (140 questions)
+│   ├── extended_questions.json (20 advanced questions)
+│   ├── llm_judge.py (optional GPT-4/Claude-3 judge)
+│   ├── run_eval.py
+│   └── compare_evaluations.py
+└── vision/
+    ├── download_dataset.py (Open Images downloader)
+    ├── run_eval.py
+    ├── dataset.json
+    └── images/ (176 downloaded images)
+
+run-coreml/
+├── llama_pajamas_run_coreml/
+│   ├── converters/ (PyTorch→CoreML)
+│   └── backends/vision.py (CoreMLVisionBackend)
+└── pyproject.toml
+
+run-core/
+├── backends/vision_base.py (Vision backend interface)
+└── utils/vision_utils.py (Shared preprocessing/postprocessing)
+```
+
+### Performance Metrics
+
+**Vision Models (Apple Silicon M-series, ANE-optimized):**
+- YOLO-v8n: 6.1 MB, 22.6 FPS, 53.1% avg confidence
+- ViT-Base: 165 MB, 21.8 FPS, 55.9% avg confidence
+- CLIP-ViT-Base: 167 MB, 19.9 FPS, 0.395 avg similarity
+
+**LLM Evaluation (qwen3-8b):**
+- GGUF Q4_K_M: 90% accuracy (0.79s/question)
+- MLX 4-bit: 87.5% accuracy (1.38s/question)
+
+### Next Phase: Week 5-6
+
+**Priority 1: CoreML Speech** (Whisper STT, TTS)
+**Priority 2: Multi-modal integration** (Vision + Speech + LLM)
+**Priority 3: ONNX runtime** (Cross-platform alternative to CoreML)
+
