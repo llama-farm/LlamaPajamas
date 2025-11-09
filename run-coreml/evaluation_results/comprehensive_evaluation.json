@@ -1,0 +1,116 @@
+{
+  "test_images": 5,
+  "image_files": [
+    "cat.png",
+    "cat1.jpg",
+    "cat2.jpg",
+    "horse.jpg",
+    "ts_to_test.jpg"
+  ],
+  "models": {
+    "yolo": {
+      "performance": {
+        "model_name": "model",
+        "model_type": "detection",
+        "model_path": "/tmp/coreml-test-models/yolo-v8n-coreml/model.mlpackage",
+        "model_size_mb": 6.185439109802246,
+        "num_images": 5,
+        "total_time_s": 0.15311408042907715,
+        "avg_latency_ms": 30.620574951171875,
+        "std_latency_ms": 19.7223241704671,
+        "min_latency_ms": 13.844013214111328,
+        "max_latency_ms": 68.98617744445801,
+        "fps": 32.65538992879243,
+        "task_metrics": {
+          "total_detections": 6,
+          "avg_detections_per_image": 1.2,
+          "confidence_threshold": 0.25
+        },
+        "compute_units": "ALL",
+        "timestamp": "2025-11-09 11:48:29"
+      },
+      "quality": {
+        "total_detections": 6,
+        "images_processed": 5,
+        "avg_detections_per_image": 1.2,
+        "std_detections_per_image": 0.4000000000000001,
+        "avg_confidence": 0.72509765625,
+        "std_confidence": 0.20168301234982502,
+        "min_confidence": 0.333984375,
+        "max_confidence": 0.974609375,
+        "unique_classes_detected": 4,
+        "class_distribution": {
+          "cat": 3,
+          "cow": 1,
+          "horse": 1,
+          "stop sign": 1
+        }
+      }
+    },
+    "vit": {
+      "performance": {
+        "model_name": "model",
+        "model_type": "classification",
+        "model_path": "/tmp/coreml-test-models/vit-base-coreml/model.mlpackage",
+        "model_size_mb": 165.25946044921875,
+        "num_images": 5,
+        "total_time_s": 0.1688859462738037,
+        "avg_latency_ms": 33.756446838378906,
+        "std_latency_ms": 19.84822350793124,
+        "min_latency_ms": 18.180131912231445,
+        "max_latency_ms": 72.42798805236816,
+        "fps": 29.605778990596576,
+        "task_metrics": {
+          "top_k": 5,
+          "avg_top1_confidence": 0.5321582615375519,
+          "avg_top5_confidence": 0.14316828720271588
+        },
+        "compute_units": "ALL",
+        "timestamp": "2025-11-09 11:48:43"
+      },
+      "quality": {
+        "images_processed": 5,
+        "avg_top1_confidence": 0.5321582615375519,
+        "std_top1_confidence": 0.20595263070398603,
+        "avg_top5_confidence": 0.14316828720271588,
+        "avg_prediction_entropy": 0.842392572438731,
+        "high_confidence_predictions": 2,
+        "low_confidence_predictions": 1
+      }
+    },
+    "clip": {
+      "performance": {
+        "model_name": "model",
+        "model_type": "embedding",
+        "model_path": "/tmp/coreml-test-models/clip-vit-base-coreml/model.mlpackage",
+        "model_size_mb": 166.9526128768921,
+        "num_images": 5,
+        "total_time_s": 0.17024517059326172,
+        "avg_latency_ms": 34.04440879821777,
+        "std_latency_ms": 20.903669654021574,
+        "min_latency_ms": 15.208959579467773,
+        "max_latency_ms": 74.36609268188477,
+        "fps": 29.369408733159677,
+        "task_metrics": {
+          "embedding_dim": 768,
+          "avg_norm": 1.0,
+          "avg_similarity": 0.6261239886283875,
+          "std_similarity": 0.11989345598574451
+        },
+        "compute_units": "ALL",
+        "timestamp": "2025-11-09 11:48:57"
+      },
+      "quality": {
+        "images_processed": 5,
+        "embedding_dim": 768,
+        "avg_norm": 1.0,
+        "std_norm": 6.529361940010858e-08,
+        "avg_similarity": 0.6261239886283875,
+        "std_similarity": 0.11989345598574451,
+        "min_similarity": 0.46810150146484375,
+        "max_similarity": 0.83378666639328,
+        "total_comparisons": 10
+      }
+    }
+  }
+}

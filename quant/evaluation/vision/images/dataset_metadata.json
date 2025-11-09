@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "source": "open_images_v7_validation",
+  "source_url": "https://storage.googleapis.com/openimages/2018_04/validation/validation-images-with-rotation.csv",
+  "total_images": 176,
+  "failed": 24,
+  "distribution": {
+    "detection": 87,
+    "classification": 61,
+    "embedding": 28
+  },
+  "notes": "Images downloaded from Open Images V7 validation set. Licensed under CC BY 4.0."
+}

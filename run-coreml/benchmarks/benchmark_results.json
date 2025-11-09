@@ -1,0 +1,63 @@
+[
+  {
+    "model_name": "model",
+    "model_type": "detection",
+    "model_path": "/tmp/coreml-test-models/yolo-v8n-coreml/model.mlpackage",
+    "model_size_mb": 6.185439109802246,
+    "num_images": 5,
+    "total_time_s": 0.15543389320373535,
+    "avg_latency_ms": 31.084728240966797,
+    "std_latency_ms": 20.00802319271438,
+    "min_latency_ms": 15.31982421875,
+    "max_latency_ms": 70.42288780212402,
+    "fps": 32.168016234697525,
+    "task_metrics": {
+      "total_detections": 6,
+      "avg_detections_per_image": 1.2,
+      "confidence_threshold": 0.25
+    },
+    "compute_units": "ALL",
+    "timestamp": "2025-11-09 11:20:35"
+  },
+  {
+    "model_name": "model",
+    "model_type": "classification",
+    "model_path": "/tmp/coreml-test-models/vit-base-coreml/model.mlpackage",
+    "model_size_mb": 165.25946044921875,
+    "num_images": 5,
+    "total_time_s": 0.16355299949645996,
+    "avg_latency_ms": 32.689619064331055,
+    "std_latency_ms": 19.286526825346552,
+    "min_latency_ms": 17.884016036987305,
+    "max_latency_ms": 70.47796249389648,
+    "fps": 30.571129941938015,
+    "task_metrics": {
+      "top_k": 5,
+      "avg_top1_confidence": 0.5321582615375519,
+      "avg_top5_confidence": 0.14316828720271588
+    },
+    "compute_units": "ALL",
+    "timestamp": "2025-11-09 11:20:48"
+  },
+  {
+    "model_name": "model",
+    "model_type": "embedding",
+    "model_path": "/tmp/coreml-test-models/clip-vit-base-coreml/model.mlpackage",
+    "model_size_mb": 166.9526128768921,
+    "num_images": 5,
+    "total_time_s": 0.17197203636169434,
+    "avg_latency_ms": 34.39054489135742,
+    "std_latency_ms": 23.364244692720675,
+    "min_latency_ms": 13.980865478515625,
+    "max_latency_ms": 79.46085929870605,
+    "fps": 29.07449435258137,
+    "task_metrics": {
+      "embedding_dim": 768,
+      "avg_norm": 1.0,
+      "avg_similarity": 0.6261239886283875,
+      "std_similarity": 0.11989345598574451
+    },
+    "compute_units": "ALL",
+    "timestamp": "2025-11-09 11:20:49"
+  }
+]

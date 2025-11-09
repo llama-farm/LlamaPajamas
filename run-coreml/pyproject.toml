@@ -1,0 +1,32 @@
+[project]
+name = "llama-pajamas-run-coreml"
+version = "0.2.0"
+description = "CoreML runtime for Llama-Pajamas (Apple Silicon multi-modal: Vision + Speech + LLMs)"
+requires-python = ">=3.12"
+dependencies = [
+    "llama-pajamas-run-core",
+    "coremltools>=7.0",       # CoreML conversion + runtime
+    "Pillow>=10.0.0",         # Image processing
+    "numpy>=1.24.0",          # Array operations
+    "librosa>=0.10.0",        # Audio processing
+    "soundfile>=0.12.0",      # Audio I/O
+    "torch>=2.0.0",           # PyTorch for model conversion
+    "transformers>=4.35.0",   # HuggingFace models (CLIP, ViT)
+    "ultralytics>=8.0.0",     # YOLO-v8 models
+]
+
+[project.scripts]
+llama-pajamas-coreml = "llama_pajamas_run_coreml.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+llama-pajamas-run-core = { path = "../run-core", editable = true }

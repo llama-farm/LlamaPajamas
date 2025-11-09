@@ -1,0 +1,134 @@
+{
+  "version": "1.0",
+  "description": "Extended evaluation questions with longer inputs for tool calling, summarization, and code generation",
+  "total_questions": 20,
+  "categories": {
+    "tool_calling_extended": 5,
+    "summarization": 5,
+    "code_generation": 5,
+    "long_context": 5
+  },
+  "questions": [
+    {
+      "prompt": "You are a helpful assistant with access to these functions:\n\nfunction get_weather(location: string, units?: string): Promise<WeatherData> {\n  // Returns current weather for location\n}\n\nfunction get_forecast(location: string, days: number): Promise<ForecastData> {\n  // Returns multi-day forecast\n}\n\nfunction search_restaurants(location: string, cuisine?: string, price_range?: string): Promise<Restaurant[]> {\n  // Searches for restaurants\n}\n\nfunction book_reservation(restaurant_id: string, date: string, time: string, party_size: number): Promise<Reservation> {\n  // Books a restaurant reservation\n}\n\nUser request: 'I'm visiting San Francisco next week. Can you check the weather forecast for the next 5 days and recommend some good Italian restaurants in the moderate price range?'\n\nWhich functions should you call and in what order? Respond with JSON:\n{\"functions\": [{\"name\": \"function_name\", \"params\": {...}}]}",
+      "expected": "get_forecast",
+      "category": "tool_calling_extended",
+      "judge_required": false
+    },
+    {
+      "prompt": "You have access to:\n\nfunction send_email(to: string, subject: string, body: string): void\nfunction schedule_meeting(participants: string[], date: string, duration_minutes: number, title: string): void\nfunction create_todo(task: string, due_date: string, priority: string): void\nfunction search_contacts(query: string): Contact[]\nfunction get_calendar_availability(date: string): TimeSlot[]\n\nUser: 'Please email John Smith about the Q4 planning meeting. Schedule it for next Tuesday at 2pm for 90 minutes, invite Sarah Johnson too, and create a high-priority todo for me to prepare the presentation slides by Monday.'\n\nList all function calls needed in order:",
+      "expected": "search_contacts",
+      "category": "tool_calling_extended",
+      "judge_required": false
+    },
+    {
+      "prompt": "Given these API functions:\n\ngetUserProfile(userId)\nlistUserOrders(userId, limit?)\ngetOrderDetails(orderId)\nprocessRefund(orderId, amount, reason)\nsendNotification(userId, message)\n\nUser scenario: 'Customer ID 12345 is complaining about order #98765. They want a full refund because the item arrived damaged. Please process this and let them know.'\n\nWhat's the correct sequence of API calls?",
+      "expected": "getOrderDetails",
+      "category": "tool_calling_extended",
+      "judge_required": false
+    },
+    {
+      "prompt": "You're an AI assistant with database access:\n\nquery_database(sql: string): ResultSet\nupdate_record(table: string, id: number, data: object): boolean\ninsert_record(table: string, data: object): number\ndelete_record(table: string, id: number): boolean\nget_table_schema(table: string): Schema\n\nUser: 'Find all users who haven't logged in for more than 90 days, update their status to inactive, and send them a reactivation email using the notifications table.'\n\nFirst function to call:",
+      "expected": "query_database",
+      "category": "tool_calling_extended",
+      "judge_required": false
+    },
+    {
+      "prompt": "Available functions:\n\nfunction analyze_sentiment(text: string): {score: number, label: string}\nfunction extract_entities(text: string): Entity[]\nfunction translate_text(text: string, target_lang: string): string\nfunction generate_summary(text: string, max_length: number): string\nfunction classify_topic(text: string): {topic: string, confidence: number}\n\nUser provides: 'Take this customer review: \"The product quality is amazing but shipping took forever. Customer service was helpful though.\" Analyze the sentiment, extract key entities, and give me a brief summary.'\n\nWhich functions are needed?",
+      "expected": "analyze_sentiment",
+      "category": "tool_calling_extended",
+      "judge_required": false
+    },
+    {
+      "prompt": "Summarize this article in 2-3 sentences:\n\nTitle: The Rise of Renewable Energy\n\nRenewable energy sources have seen unprecedented growth over the past decade. Solar panel installations increased by 300% between 2015 and 2023, while wind energy capacity doubled. This shift is driven by declining costs - solar energy is now cheaper than coal in most markets. Governments worldwide have implemented policies supporting clean energy, with the EU targeting 45% renewable energy by 2030. Battery storage technology has improved dramatically, solving the intermittency challenge. However, critics point to continued reliance on fossil fuels for base load power and the environmental impact of mining rare earth minerals for batteries. Despite challenges, renewable energy investment reached $500 billion in 2023, signaling strong confidence in the sector's future.\n\nProvide a concise summary:",
+      "expected": "renewable energy",
+      "category": "summarization",
+      "judge_required": true
+    },
+    {
+      "prompt": "Summarize this research paper abstract:\n\nAbstract: We present a novel approach to neural machine translation that combines transformer architectures with reinforcement learning. Our method, called RL-Transformer, uses policy gradient algorithms to optimize translation quality beyond traditional maximum likelihood training. We introduce a reward function that balances fluency, adequacy, and linguistic diversity. Experiments on WMT 2024 datasets show RL-Transformer achieves 2.3 BLEU points improvement over baseline transformers on English-German translation, with similar gains on other language pairs. Analysis reveals the model learns to handle ambiguous phrases more effectively and produces more natural idiomatic expressions. Training time increases by 40% but inference speed remains unchanged. We release code and pre-trained models to facilitate reproducibility.\n\nKey takeaway (1-2 sentences):",
+      "expected": "neural machine translation",
+      "category": "summarization",
+      "judge_required": true
+    },
+    {
+      "prompt": "Summarize this meeting transcript:\n\nSarah: Let's discuss Q1 budget allocation. We have $500K to distribute across three projects.\n\nJohn: Project A needs $250K for infrastructure upgrades. It's critical for scalability.\n\nMike: I disagree. Project B should get priority - our customer retention depends on it. $200K minimum.\n\nSarah: What about Project C? The new feature launch?\n\nEmily: Project C can wait until Q2. Let's focus on A and B now.\n\nJohn: Okay, how about $250K for A, $200K for B, and we'll revisit C next quarter?\n\nEveryone: Agreed.\n\nSarah: Great, I'll document this and share by end of day.\n\nDecision summary:",
+      "expected": "budget",
+      "category": "summarization",
+      "judge_required": true
+    },
+    {
+      "prompt": "Summarize this product review:\n\n5 stars - Best laptop I've ever owned! I'm a software developer and this machine handles everything I throw at it. Compile times are 3x faster than my old laptop. The display is gorgeous - perfect for long coding sessions. Battery lasts a full workday even with multiple IDEs running. Build quality feels premium. The keyboard is a dream to type on. Only minor complaint: the fans can get loud under heavy load, but it's worth it for the performance. Trackpad is huge and responsive. Ports are limited but I bought a USB-C hub. Would absolutely recommend to any developer or power user. Price is steep but justified by the specs.\n\nQuick summary:",
+      "expected": "laptop",
+      "category": "summarization",
+      "judge_required": true
+    },
+    {
+      "prompt": "Summarize this news article:\n\nTitle: Major Tech Company Announces Layoffs\n\nTechCorp announced today it will lay off 12,000 employees, representing 8% of its workforce. CEO Jane Smith cited 'economic headwinds' and 'need to streamline operations' in an internal memo. The cuts will primarily affect the advertising and recruiting divisions. Affected employees will receive severance packages including 3 months pay plus one week per year of service. The company's stock rose 4% on the news. This follows similar layoffs at competitors, with the tech sector shedding over 200,000 jobs in 2024. Industry analysts say companies over-hired during the pandemic boom and are now correcting. TechCorp maintains its long-term growth strategy remains unchanged despite the cuts.\n\nOne-sentence summary:",
+      "expected": "layoff",
+      "category": "summarization",
+      "judge_required": true
+    },
+    {
+      "prompt": "Write a Python function that finds the longest common subsequence (LCS) of two strings using dynamic programming. Include proper type hints and a docstring.",
+      "expected": "def",
+      "category": "code_generation",
+      "judge_required": false
+    },
+    {
+      "prompt": "Create a JavaScript function that debounces another function. It should delay execution until after a specified wait time has elapsed since the last call.",
+      "expected": "function",
+      "category": "code_generation",
+      "judge_required": false
+    },
+    {
+      "prompt": "Write a SQL query that finds the top 5 customers by total purchase amount in the last 30 days, including their names, emails, and total spent. Assume tables: customers(id, name, email) and orders(id, customer_id, amount, created_at).",
+      "expected": "SELECT",
+      "category": "code_generation",
+      "judge_required": false
+    },
+    {
+      "prompt": "Implement a binary search tree class in Python with insert, search, and delete methods. Use proper OOP principles.",
+      "expected": "class",
+      "category": "code_generation",
+      "judge_required": false
+    },
+    {
+      "prompt": "Write a React component that fetches and displays a list of users from an API. Include loading state, error handling, and use hooks.",
+      "expected": "const",
+      "category": "code_generation",
+      "judge_required": false
+    },
+    {
+      "prompt": "Context: You're reviewing a complex codebase with 50 files. The main application is an e-commerce platform. You need to understand how the checkout process works. Files include: PaymentProcessor.js, OrderManager.py, ShoppingCart.tsx, CheckoutFlow.vue, Database.sql, API.routes.js, UserAuth.middleware.js, EmailService.py, InventoryManager.js, ShippingCalculator.py.\n\nQuestion: Based on typical e-commerce architecture, which files would you examine first to understand the checkout flow?\nA) PaymentProcessor.js, OrderManager.py, CheckoutFlow.vue\nB) UserAuth.middleware.js, Database.sql, API.routes.js\nC) ShoppingCart.tsx, EmailService.py, ShippingCalculator.py\nD) InventoryManager.js, Database.sql, PaymentProcessor.js\nAnswer:",
+      "expected": "A",
+      "category": "long_context",
+      "judge_required": false
+    },
+    {
+      "prompt": "Long document: A company has the following quarterly revenue: Q1 2023: $1.2M, Q2 2023: $1.5M, Q3 2023: $1.8M, Q4 2023: $2.1M, Q1 2024: $2.3M, Q2 2024: $2.6M, Q3 2024: $2.9M. Expenses were roughly 60% of revenue each quarter. The company raised $5M in Series A funding in Q2 2023. They hired 20 employees in 2023 and 15 more in 2024. Office expansion cost $500K in Q4 2023. Marketing budget was $200K per quarter in 2023, increased to $300K per quarter in 2024.\n\nQuestion: What was the company's approximate profit in Q3 2024?\nA) $1.16M\nB) $870K\nC) $2.9M\nD) $1.74M\nAnswer:",
+      "expected": "A",
+      "category": "long_context",
+      "judge_required": false
+    },
+    {
+      "prompt": "Scenario: A software bug causes customer orders to be duplicated in the database. The bug affected orders between June 1-5, 2024. The dev team deployed a fix on June 5 at 3pm. During those 5 days, the system processed 10,000 orders normally, but 2,500 orders were duplicated (so 2,500 duplicate entries exist). Customer service received 450 complaints. The finance team processed refunds for 320 complaints before the issue was identified. Each duplicate order was charged twice to customers' credit cards.\n\nQuestion: How many customers were overcharged but haven't received refunds yet?\nA) 2,500\nB) 2,180\nC) 130\nD) 450\nAnswer:",
+      "expected": "B",
+      "category": "long_context",
+      "judge_required": false
+    },
+    {
+      "prompt": "Research study summary: A 12-month randomized controlled trial studied effects of three different diets on weight loss. Group A (Mediterranean diet, n=200) lost an average of 12 lbs. Group B (Low-carb diet, n=200) lost 15 lbs on average. Group C (Control/standard diet, n=200) lost 5 lbs. However, dropout rates were: Group A: 10%, Group B: 35%, Group C: 15%. Blood pressure improved significantly in Groups A and C but not B. Cholesterol levels improved in all groups. Cost per person: Group A: $50/month, Group B: $80/month, Group C: $30/month. Patient satisfaction scores (1-10): Group A: 8.2, Group B: 6.5, Group C: 7.0.\n\nQuestion: Considering effectiveness, adherence, and satisfaction, which diet showed the best overall results?\nA) Mediterranean (Group A)\nB) Low-carb (Group B)\nC) Standard (Group C)\nD) All equally effective\nAnswer:",
+      "expected": "A",
+      "category": "long_context",
+      "judge_required": false
+    },
+    {
+      "prompt": "Multi-step problem: A logistics company operates 50 delivery trucks. Each truck drives 150 miles per day on average. Fuel efficiency is 8 miles per gallon. Gas costs $3.50/gallon. The company operates 6 days per week. Truck maintenance costs $500 per truck per month. Driver salaries are $4000/month per driver (one driver per truck). Insurance is $200 per truck per month. The company charges customers $2 per mile delivered. Average utilization (loaded miles vs empty miles) is 70%.\n\nQuestion: What is the company's approximate monthly profit before fixed costs?\nA) $420,000\nB) $315,000\nC) $180,000\nD) $245,000\nAnswer:",
+      "expected": "B",
+      "category": "long_context",
+      "judge_required": false
+    }
+  ],
+  "notes": "These extended questions test: 1) Complex tool calling with multiple functions and dependencies, 2) Summarization requiring LLM-as-judge evaluation, 3) Code generation across multiple languages, 4) Long context understanding with multi-step reasoning. Summarization questions should use optional LLM judge for quality assessment."
+}

@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "description": "Vision evaluation dataset for CoreML and future vision model runtimes",
+  "total_images": 5,
+  "categories": {
+    "detection": 5,
+    "classification": 1,
+    "embedding": 0
+  },
+  "tasks": {
+    "object_detection": {
+      "description": "YOLO-v8n detection evaluation",
+      "image_dir": "images/detection",
+      "models": [
+        "yolo-v8n"
+      ],
+      "metrics": ["fps", "latency_ms", "detections_per_image", "avg_confidence"]
+    },
+    "image_classification": {
+      "description": "ViT-base classification evaluation",
+      "image_dir": "images/classification",
+      "models": [
+        "vit-base"
+      ],
+      "metrics": ["fps", "latency_ms", "top1_confidence"]
+    },
+    "vision_embedding": {
+      "description": "CLIP-ViT-base embedding evaluation",
+      "image_dir": "images/detection",
+      "models": [
+        "clip-vit-base"
+      ],
+      "metrics": ["fps", "latency_ms", "avg_pairwise_similarity"]
+    }
+  },
+  "notes": "Initial dataset with 5-6 test images. Expand to 200-300 diverse images for comprehensive evaluation."
+}

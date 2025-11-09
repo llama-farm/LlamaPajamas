@@ -1,0 +1,42 @@
+{
+  "model_path": "/tmp/coreml-test-models/yolo-v8n-coreml/model.mlpackage",
+  "model_type": "detection",
+  "num_images": 5,
+  "performance": {
+    "model_name": "model",
+    "model_type": "detection",
+    "model_path": "/tmp/coreml-test-models/yolo-v8n-coreml/model.mlpackage",
+    "model_size_mb": 6.185439109802246,
+    "num_images": 5,
+    "total_time_s": 0.15679693222045898,
+    "avg_latency_ms": 31.357383728027344,
+    "std_latency_ms": 20.046140796120156,
+    "min_latency_ms": 15.616893768310547,
+    "max_latency_ms": 70.69683074951172,
+    "fps": 31.888378995642086,
+    "task_metrics": {
+      "total_detections": 6,
+      "avg_detections_per_image": 1.2,
+      "confidence_threshold": 0.3
+    },
+    "compute_units": "ALL",
+    "timestamp": "2025-11-09 11:50:05"
+  },
+  "quality": {
+    "total_detections": 6,
+    "images_processed": 5,
+    "avg_detections_per_image": 1.2,
+    "std_detections_per_image": 0.4000000000000001,
+    "avg_confidence": 0.72509765625,
+    "std_confidence": 0.20168301234982502,
+    "min_confidence": 0.333984375,
+    "max_confidence": 0.974609375,
+    "unique_classes_detected": 4,
+    "class_distribution": {
+      "cat": 3,
+      "cow": 1,
+      "horse": 1,
+      "stop sign": 1
+    }
+  }
+}

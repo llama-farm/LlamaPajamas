@@ -1,0 +1,127 @@
+{
+  "version": "1.0",
+  "description": "Standard evaluation prompts for LLM quality assessment",
+  "judge_model": "gpt-5-nano",
+  "prompts": [
+    {
+      "id": "code_factorial",
+      "prompt": "Write a Python function to calculate the factorial of a number:",
+      "category": "code",
+      "expected_qualities": ["correct", "efficient", "well-commented"]
+    },
+    {
+      "id": "explain_recursion",
+      "prompt": "Explain the concept of recursion in programming:",
+      "category": "technical_explanation",
+      "expected_qualities": ["accurate", "clear", "includes_example"]
+    },
+    {
+      "id": "list_vs_tuple",
+      "prompt": "What is the difference between a list and a tuple in Python?",
+      "category": "factual",
+      "expected_qualities": ["accurate", "concise", "comprehensive"]
+    },
+    {
+      "id": "code_reverse_string",
+      "prompt": "Write a function to reverse a string:",
+      "category": "code",
+      "expected_qualities": ["correct", "simple", "readable"]
+    },
+    {
+      "id": "explain_decorator",
+      "prompt": "Explain what a decorator is in Python:",
+      "category": "technical_explanation",
+      "expected_qualities": ["accurate", "detailed", "includes_example"]
+    },
+    {
+      "id": "code_sorting",
+      "prompt": "Write a sorting algorithm (your choice) in Python:",
+      "category": "code",
+      "expected_qualities": ["correct", "efficient", "readable"]
+    },
+    {
+      "id": "sync_vs_async",
+      "prompt": "What are the key differences between synchronous and asynchronous programming?",
+      "category": "conceptual",
+      "expected_qualities": ["accurate", "clear", "comprehensive"]
+    },
+    {
+      "id": "data_structures_array",
+      "prompt": "Explain how arrays work in memory and their time complexity for common operations:",
+      "category": "technical_explanation",
+      "expected_qualities": ["accurate", "detailed", "includes_complexity_analysis"]
+    },
+    {
+      "id": "code_binary_search",
+      "prompt": "Implement binary search in Python:",
+      "category": "code",
+      "expected_qualities": ["correct", "efficient", "handles_edge_cases"]
+    },
+    {
+      "id": "oop_principles",
+      "prompt": "Explain the four pillars of object-oriented programming:",
+      "category": "conceptual",
+      "expected_qualities": ["accurate", "comprehensive", "includes_examples"]
+    },
+    {
+      "id": "code_fibonacci",
+      "prompt": "Write a function to calculate the nth Fibonacci number:",
+      "category": "code",
+      "expected_qualities": ["correct", "efficient", "readable"]
+    },
+    {
+      "id": "explain_git",
+      "prompt": "Explain what Git is and why it's useful for software development:",
+      "category": "technical_explanation",
+      "expected_qualities": ["accurate", "clear", "practical_examples"]
+    },
+    {
+      "id": "code_palindrome",
+      "prompt": "Write a function to check if a string is a palindrome:",
+      "category": "code",
+      "expected_qualities": ["correct", "simple", "handles_edge_cases"]
+    },
+    {
+      "id": "rest_vs_graphql",
+      "prompt": "What are the main differences between REST and GraphQL APIs?",
+      "category": "conceptual",
+      "expected_qualities": ["accurate", "balanced", "includes_use_cases"]
+    },
+    {
+      "id": "code_merge_sorted",
+      "prompt": "Write a function to merge two sorted arrays:",
+      "category": "code",
+      "expected_qualities": ["correct", "efficient", "handles_duplicates"]
+    },
+    {
+      "id": "explain_closure",
+      "prompt": "Explain what a closure is in programming:",
+      "category": "technical_explanation",
+      "expected_qualities": ["accurate", "clear", "includes_example"]
+    },
+    {
+      "id": "code_fizzbuzz",
+      "prompt": "Implement FizzBuzz in Python:",
+      "category": "code",
+      "expected_qualities": ["correct", "readable", "follows_spec"]
+    },
+    {
+      "id": "database_normalization",
+      "prompt": "Explain database normalization and why it's important:",
+      "category": "conceptual",
+      "expected_qualities": ["accurate", "comprehensive", "practical_examples"]
+    },
+    {
+      "id": "code_two_sum",
+      "prompt": "Write a function to find two numbers in an array that sum to a target value:",
+      "category": "code",
+      "expected_qualities": ["correct", "efficient", "handles_edge_cases"]
+    },
+    {
+      "id": "explain_big_o",
+      "prompt": "Explain Big O notation and why it matters:",
+      "category": "technical_explanation",
+      "expected_qualities": ["accurate", "clear", "includes_examples"]
+    }
+  ]
+}
