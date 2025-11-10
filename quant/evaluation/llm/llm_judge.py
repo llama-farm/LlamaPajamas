@@ -11,7 +11,7 @@ Usage:
     uv run python evaluation/llm/run_eval.py --use-llm-judge
 
     # Or use a different model
-    export LLM_JUDGE_MODEL=claude-3-sonnet-20240229
+    export LLM_JUDGE_MODEL=gpt-5-nano
     uv run python evaluation/llm/run_eval.py --use-llm-judge
 """
 
@@ -41,7 +41,7 @@ class LLMJudge:
         """Initialize LLM judge.
 
         Args:
-            model: Model to use for judging (gpt-4-turbo-preview, claude-3-sonnet, etc.)
+            model: Model to use for judging (gpt-5-nano, gpt-4, etc.)
             api_key: API key (defaults to OPENAI_API_KEY or ANTHROPIC_API_KEY env vars)
             score_threshold: Minimum score to pass (default: 7.0/10)
         """

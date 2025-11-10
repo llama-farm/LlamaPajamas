@@ -1,3 +1,12 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials.json
+secrets.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -19,12 +28,14 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
 .venv/
 venv/
 ENV/
 env/
+.pyenv/
 
 # UV
 .python-version
@@ -36,24 +47,71 @@ uv.lock
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
 # OS
 .DS_Store
 Thumbs.db
+*.bak
+*.tmp
 
-# Model files
+# Model files (large binaries)
 *.gguf
 *.safetensors
 *.bin
 *.pt
 *.pth
+*.onnx
+*.mlpackage/
+*.engine
+*.imatrix
 
-# Data
+# Quantized models directory (too large for git)
 models/
+!models/.gitkeep
+!models/README.md
+
+# Data and caches
 data/
 cache/
 .cache/
+huggingface_cache/
+.huggingface/
 
-# Logs
+# Evaluation results
+evaluation/results/
+*.json.gz
+
+# Logs and outputs
 *.log
 logs/
+output/
+results/
+checkpoints/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Package distribution
+pip-wheel-metadata/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Planning and internal docs
+.plans/
+.claude/
+internal/

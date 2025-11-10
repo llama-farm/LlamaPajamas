@@ -253,9 +253,7 @@ uv run python evaluation/llm/run_eval.py \
     --use-llm-judge
 
 # Use specific judge model
-export LLM_JUDGE_MODEL=gpt-4-turbo-preview
-# or
-export LLM_JUDGE_MODEL=claude-3-sonnet-20240229
+export LLM_JUDGE_MODEL=gpt-5-nano
 
 # Set custom score threshold (default: 7.0/10)
 uv run python evaluation/llm/run_eval.py \
