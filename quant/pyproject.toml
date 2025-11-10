@@ -36,7 +36,8 @@ dependencies = [
 ]
 
 [project.scripts]
-llama-pajamas-quant = "llama_pajamas_quant.cli:main"
+llama-pajamas-quant = "llama_pajamas_quant.cli.main:main"
+lp-quant = "llama_pajamas_quant.cli.main:main"
 lp-export = "llama_pajamas_quant.exporters.unified:main"
 
 [build-system]

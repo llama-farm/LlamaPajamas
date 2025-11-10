@@ -115,3 +115,8 @@ tmp/
 .plans/
 .claude/
 internal/
+
+# Bin symlinks (keep scripts but ignore binaries)
+bin/llama-*
+!bin/*.sh
+!bin/README.md
