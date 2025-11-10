@@ -34,25 +34,103 @@ def register_command(subparsers):
 
 def evaluate_llm(args):
     """Evaluate LLM."""
-    logger.info(f"Evaluating LLM in {args.model_dir}")
-    logger.info(f"Questions: {args.num_questions}")
-    logger.info("Running evaluation scripts...")
-    logger.error("LLM evaluation command not yet fully implemented")
-    logger.info("Please use: cd quant && uv run python evaluation/llm/run_eval.py")
-    return 1
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    print(f"Evaluating LLM in {args.model_dir}")
+    print(f"Questions: {args.num_questions}")
+
+    # Find evaluation script
+    eval_script = Path(__file__).parent.parent.parent.parent / "evaluation" / "llm" / "run_eval.py"
+
+    if not eval_script.exists():
+        logger.error(f"Evaluation script not found: {eval_script}")
+        return 1
+
+    # Build command
+    cmd = [
+        sys.executable,
+        str(eval_script),
+        "--model-dir", str(args.model_dir),
+        "--num-questions", str(args.num_questions),
+    ]
+
+    if args.use_llm_judge:
+        cmd.append("--use-llm-judge")
+
+    logger.info(f"Running: {' '.join(cmd)}")
+
+    try:
+        result = subprocess.run(cmd, check=True)
+        return result.returncode
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Evaluation failed: {e}")
+        return 1
 
 
 def evaluate_vision(args):
     """Evaluate vision model."""
-    logger.info(f"Evaluating vision model: {args.model}")
-    logger.error("Vision evaluation command not yet fully implemented")
-    logger.info("Please use: cd run-coreml && uv run python ../quant/evaluation/vision/run_eval.py")
-    return 1
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    print(f"Evaluating vision model: {args.model}")
+
+    # Find evaluation script
+    eval_script = Path(__file__).parent.parent.parent.parent / "evaluation" / "vision" / "run_eval.py"
+
+    if not eval_script.exists():
+        logger.error(f"Evaluation script not found: {eval_script}")
+        logger.info("Please ensure evaluation scripts are in quant/evaluation/")
+        return 1
+
+    # Build command
+    cmd = [
+        sys.executable,
+        str(eval_script),
+        "--model", args.model,
+        "--models-dir", str(args.models_dir),
+        "--images", str(args.images),
+    ]
+
+    logger.info(f"Running: {' '.join(cmd)}")
+
+    try:
+        result = subprocess.run(cmd, check=True)
+        return result.returncode
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Evaluation failed: {e}")
+        return 1
 
 
 def compare_evaluations(args):
     """Compare model evaluations."""
-    logger.info(f"Comparing evaluations in {args.model_dir}")
-    logger.error("Comparison command not yet fully implemented")
-    logger.info("Please use: cd quant && uv run python evaluation/llm/compare_evaluations.py")
-    return 1
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    print(f"Comparing evaluations in {args.model_dir}")
+
+    # Find comparison script
+    compare_script = Path(__file__).parent.parent.parent.parent / "evaluation" / "llm" / "compare_evaluations.py"
+
+    if not compare_script.exists():
+        logger.error(f"Comparison script not found: {compare_script}")
+        return 1
+
+    # Build command
+    cmd = [
+        sys.executable,
+        str(compare_script),
+        "--model-dir", str(args.model_dir),
+    ]
+
+    logger.info(f"Running: {' '.join(cmd)}")
+
+    try:
+        result = subprocess.run(cmd, check=True)
+        return result.returncode
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Comparison failed: {e}")
+        return 1

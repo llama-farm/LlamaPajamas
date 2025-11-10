@@ -85,13 +85,55 @@ def quantize_llm(args):
 
 def quantize_vision(args):
     """Quantize vision model."""
-    logger.error("Vision quantization not yet implemented in CLI")
-    logger.info("Use: llama-pajamas-quant export --backend coreml --precision int8")
-    return 1
+    from ...quantizers.coreml_vision import quantize_vision_coreml
+
+    print_section(f"Quantizing Vision Model: {args.model}")
+
+    try:
+        result = quantize_vision_coreml(
+            model_name=args.model,
+            precision=args.precision,
+            output_dir=args.output,
+        )
+
+        print_section("Success")
+        print(f"✅ Quantized {args.model} to {args.precision.upper()}")
+        print(f"   Output: {result['output_path']}")
+        print(f"   Size: {result['quantized_size_mb']:.1f} MB (was {result['original_size_mb']:.1f} MB)")
+        print(f"   Reduction: {result['reduction_percent']:.1f}%")
+
+        return 0
+    except Exception as e:
+        logger.error(f"Failed to quantize vision model: {e}")
+        if "not found" in str(e):
+            logger.info(f"\n💡 Tip: Export the model first:")
+            logger.info(f"  llama-pajamas-quant export --model {args.model} --backend coreml --precision fp16 --output ./models/{args.model}/")
+        return 1
 
 
 def quantize_speech(args):
     """Quantize speech model."""
-    logger.error("Speech quantization not yet implemented in CLI")
-    logger.info("Use: llama-pajamas-quant export --backend coreml --precision int8")
-    return 1
+    from ...quantizers.whisper_coreml import quantize_whisper_coreml
+
+    print_section(f"Quantizing Speech Model: {args.model}")
+
+    try:
+        result = quantize_whisper_coreml(
+            model_name=args.model,
+            precision=args.precision,
+            output_dir=args.output,
+        )
+
+        print_section("Success")
+        print(f"✅ Quantized {args.model} to {args.precision.upper()}")
+        print(f"   Output: {result['output_path']}")
+        print(f"   Size: {result['quantized_size_mb']:.1f} MB (was {result['original_size_mb']:.1f} MB)")
+        print(f"   Reduction: {result['reduction_percent']:.1f}%")
+
+        return 0
+    except Exception as e:
+        logger.error(f"Failed to quantize speech model: {e}")
+        if "not found" in str(e):
+            logger.info(f"\n💡 Tip: Export the model first:")
+            logger.info(f"  uv run python scripts/export_whisper_coreml.py --model {args.model}")
+        return 1
