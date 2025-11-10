@@ -674,4 +674,5 @@ See main project LICENSE file.
 ## Related
 
 - [llama-pajamas-quant](../quant/README.md) - Quantization pipeline
-- [MVP Comprehensive Plan](../.plans/MVP-COMPREHENSIVE-PLAN.md) - Full architecture
+- [Main README](../README.md) - Project overview
+- [Deployment Guide](../quant/DEPLOYMENT.md) - Production deployment
