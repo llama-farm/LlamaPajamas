@@ -1,0 +1,32 @@
+[project]
+name = "llama-pajamas-run-tensorrt"
+version = "0.1.0"
+description = "TensorRT runtime for Llama-Pajamas (NVIDIA GPU inference: LLMs + Vision)"
+requires-python = ">=3.10"
+dependencies = [
+    "llama-pajamas-run-core",
+    "tensorrt>=8.6.0",           # TensorRT for GPU inference
+    "torch>=2.0.0",              # PyTorch for model conversion
+    "numpy>=1.24.0",             # Array operations
+    "Pillow>=10.0.0",            # Image processing
+    "transformers>=4.35.0",      # HuggingFace models
+    "onnx>=1.14.0",              # ONNX intermediate format
+    "onnx-graphsurgeon>=0.3.0",  # ONNX graph manipulation
+    "polygraphy>=0.47.0",        # TensorRT utilities
+]
+
+[project.scripts]
+llama-pajamas-tensorrt = "llama_pajamas_run_tensorrt.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+llama-pajamas-run-core = { path = "../run-core", editable = true }
