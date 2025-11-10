@@ -10,7 +10,7 @@ from typing import Optional
 import uvicorn
 from llama_pajamas_run_core.server_multimodal import create_multimodal_app
 
-from .backends import CoreMLVisionBackend, CoreMLSTTBackend, CoreMLTTSBackend
+from .backends import CoreMLVisionBackend, CoreMLSTTBackend, SystemTTSBackend
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +52,10 @@ def start_server(
         stt_backend.load_model(stt_model, **kwargs)
         logger.info("✅ STT backend loaded")
 
-    if tts_model:
-        logger.info(f"Loading TTS model: {tts_model}")
-        tts_backend = CoreMLTTSBackend()
-        tts_backend.load_model(tts_model, **kwargs)
+    if tts_model or kwargs.get("enable_tts"):
+        logger.info("Loading TTS backend (System TTS)")
+        tts_backend = SystemTTSBackend()
+        tts_backend.load_model(voice=kwargs.get("tts_voice", "Samantha"))
         logger.info("✅ TTS backend loaded")
 
     if not any([vision_backend, stt_backend, tts_backend]):

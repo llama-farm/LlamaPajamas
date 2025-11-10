@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "total_samples": 10,
+  "description": "Test audio samples for STT evaluation",
+  "samples": [
+    {
+      "id": "sample_01",
+      "text": "The quick brown fox jumps over the lazy dog",
+      "duration_sec": 3.2,
+      "category": "short"
+    },
+    {
+      "id": "sample_02",
+      "text": "In the beginning God created the heavens and the earth",
+      "duration_sec": 4.1,
+      "category": "medium"
+    },
+    {
+      "id": "sample_03",
+      "text": "To be or not to be that is the question",
+      "duration_sec": 3.5,
+      "category": "short"
+    },
+    {
+      "id": "sample_04",
+      "text": "I have a dream that one day this nation will rise up and live out the true meaning of its creed",
+      "duration_sec": 6.8,
+      "category": "long"
+    },
+    {
+      "id": "sample_05",
+      "text": "Four score and seven years ago our fathers brought forth on this continent a new nation",
+      "duration_sec": 6.2,
+      "category": "long"
+    },
+    {
+      "id": "sample_06",
+      "text": "The only thing we have to fear is fear itself",
+      "duration_sec": 3.9,
+      "category": "medium"
+    },
+    {
+      "id": "sample_07",
+      "text": "Ask not what your country can do for you ask what you can do for your country",
+      "duration_sec": 5.5,
+      "category": "medium"
+    },
+    {
+      "id": "sample_08",
+      "text": "One small step for man one giant leap for mankind",
+      "duration_sec": 4.2,
+      "category": "medium"
+    },
+    {
+      "id": "sample_09",
+      "text": "It was the best of times it was the worst of times",
+      "duration_sec": 4.6,
+      "category": "medium"
+    },
+    {
+      "id": "sample_10",
+      "text": "Whether tis nobler in the mind to suffer the slings and arrows of outrageous fortune",
+      "duration_sec": 5.8,
+      "category": "long"
+    }
+  ],
+  "notes": "These are reference transcriptions. Audio files will be generated synthetically for testing."
+}

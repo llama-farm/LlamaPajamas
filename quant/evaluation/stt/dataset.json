@@ -1,0 +1,89 @@
+{
+  "version": "1.0",
+  "source": "LibriSpeech test-clean",
+  "source_url": "https://www.openslr.org/resources/12/test-clean.tar.gz",
+  "total_samples": 10,
+  "samples": [
+    {
+      "id": "sample_001",
+      "audio_file": "sample_001.flac",
+      "text": "CONCORD RETURNED TO ITS PLACE AMIDST THE TENTS",
+      "duration_sec": 3.5,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0000"
+    },
+    {
+      "id": "sample_002",
+      "audio_file": "sample_002.flac",
+      "text": "YOU WILL BE FRANK WITH ME I ALWAYS AM",
+      "duration_sec": 3.31,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0007"
+    },
+    {
+      "id": "sample_003",
+      "audio_file": "sample_003.flac",
+      "text": "THIS HAS INDEED BEEN A HARASSING DAY CONTINUED THE YOUNG MAN HIS EYES FIXED UPON HIS FRIEND",
+      "duration_sec": 5.85,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0006"
+    },
+    {
+      "id": "sample_004",
+      "audio_file": "sample_004.flac",
+      "text": "THE COUNT HAD THROWN HIMSELF BACK ON HIS SEAT LEANING HIS SHOULDERS AGAINST THE PARTITION OF THE TENT AND REMAINED THUS HIS FACE BURIED IN HIS HANDS WITH HEAVING CHEST AND RESTLESS LIMBS",
+      "duration_sec": 13.16,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0005"
+    },
+    {
+      "id": "sample_005",
+      "audio_file": "sample_005.flac",
+      "text": "SHE TAUGHT HER DAUGHTER THEN BY HER OWN AFFECTION FOR IT THAT LOVE FOR A COUNTRY WHERE THEY HAD BOTH BEEN HOSPITABLY RECEIVED AND WHERE A BRILLIANT FUTURE OPENED BEFORE THEM",
+      "duration_sec": 11.06,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0004"
+    },
+    {
+      "id": "sample_006",
+      "audio_file": "sample_006.flac",
+      "text": "CONGRATULATIONS WERE POURED IN UPON THE PRINCESS EVERYWHERE DURING HER JOURNEY",
+      "duration_sec": 5.03,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0002"
+    },
+    {
+      "id": "sample_007",
+      "audio_file": "sample_007.flac",
+      "text": "I AM CONVINCED OF WHAT I SAY SAID THE COUNT",
+      "duration_sec": 3.19,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0011"
+    },
+    {
+      "id": "sample_008",
+      "audio_file": "sample_008.flac",
+      "text": "THUS IT IS THAT THE HONOR OF THREE IS SAVED OUR COUNTRY'S OUR MASTER'S AND OUR OWN",
+      "duration_sec": 6.38,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0015"
+    },
+    {
+      "id": "sample_009",
+      "audio_file": "sample_009.flac",
+      "text": "FROM THE RESPECT PAID HER ON ALL SIDES SHE SEEMED LIKE A QUEEN AND FROM THE ADORATION WITH WHICH SHE WAS TREATED BY TWO OR THREE SHE APPEARED AN OBJECT OF WORSHIP THE QUEEN MOTHER GAVE THE FRENCH THE MOST AFFECTIONATE RECEPTION FRANCE WAS HER NATIVE COUNTRY AND SHE HAD SUFFERED TOO MUCH UNHAPPINESS IN ENGLAND FOR ENGLAND TO HAVE MADE HER FORGET FRANCE",
+      "duration_sec": 23.32,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0003"
+    },
+    {
+      "id": "sample_010",
+      "audio_file": "sample_010.flac",
+      "text": "I CAN PERCEIVE LOVE CLEARLY ENOUGH",
+      "duration_sec": 3.04,
+      "source": "LibriSpeech test-clean",
+      "original_id": "6930-75918-0010"
+    }
+  ],
+  "notes": "LibriSpeech test-clean subset - clean read English speech with transcriptions"
+}
