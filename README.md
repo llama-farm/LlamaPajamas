@@ -45,7 +45,7 @@ Unified OpenAI-compatible API server:
 ```bash
 # 1. Quantize to GGUF Q4_K_M (4.6 GB, industry standard)
 cd quant
-uv run python test_dual_format.py \
+uv run python scripts/quantize_llm.py \
   --model Qwen/Qwen3-8B \
   --output ./models/qwen3-8b \
   --formats gguf \
@@ -137,7 +137,7 @@ llama-pajamas/
 cd quant
 
 # Dual-format: GGUF + MLX (one command)
-uv run python test_dual_format.py \
+uv run python scripts/quantize_llm.py \
   --model Qwen/Qwen3-8B \
   --output ./models/qwen3-8b \
   --formats gguf,mlx \
@@ -191,7 +191,7 @@ cd ../libs/llama.cpp
 
 # Step 4: MLX 2-bit (for Apple Silicon)
 cd ../../quant
-uv run python test_dual_format.py \
+uv run python scripts/quantize_llm.py \
   --model Qwen/Qwen3-8B \
   --output ./models/qwen3-8b \
   --formats mlx \
@@ -886,7 +886,7 @@ uv pip install -e .
 ```bash
 # LLM quantization test
 cd quant
-uv run python test_dual_format.py \
+uv run python scripts/quantize_llm.py \
   --model Qwen/Qwen3-8B \
   --output ./models/qwen3-8b \
   --formats gguf \
@@ -976,7 +976,7 @@ uv run python evaluation/vision/run_eval.py \
 ```bash
 # Standard quantization
 cd quant
-uv run python test_dual_format.py --model Qwen/Qwen3-8B --output ./models/qwen3-8b --formats gguf,mlx --gguf-precision Q4_K_M --mlx-bits 4
+uv run python scripts/quantize_llm.py --model Qwen/Qwen3-8B --output ./models/qwen3-8b --formats gguf,mlx --gguf-precision Q4_K_M --mlx-bits 4
 
 # Extreme compression (IQ2_XS)
 uv run python -c "from llama_pajamas_quant.simple_benchmarks import TEST_PROMPTS; import sys; [sys.stdout.write(p['prompt'] + '\n\n') for p in TEST_PROMPTS]" > calibration.txt
