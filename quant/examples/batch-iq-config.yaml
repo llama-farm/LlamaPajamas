@@ -1,0 +1,39 @@
+# Batch IQ Quantization Configuration
+# Generate multiple IQ precisions from one model
+# Usage: llama-pajamas-quant batch --config examples/batch-iq-config.yaml
+
+parallel: 2
+
+# IQ Quantization variants
+# Note: This requires a custom batch processor for IQ
+# For now, run manually:
+#   llama-pajamas-quant iq quantize --model base-model.gguf --precision IQ2_XS --calibration calibration.txt --output ./models/model/IQ2_XS/
+#   llama-pajamas-quant iq quantize --model base-model.gguf --precision IQ3_XS --calibration calibration.txt --output ./models/model/IQ3_XS/
+
+# Standard batch format (for reference)
+models:
+  # Start with standard quantization
+  - model: "Qwen/Qwen3-8B"
+    type: llm
+    formats: ["gguf"]
+    gguf_precision: "Q4_K_M"
+    output: "./models/qwen3-8b"
+
+# Then use the Q4_K_M output for IQ quantization:
+# 1. Generate calibration data:
+#    llama-pajamas-quant iq generate-calibration --output calibration.txt --num-samples 512
+#
+# 2. Generate importance matrix (reuse for all IQ precisions):
+#    llama-pajamas-quant iq generate-matrix \
+#      --model ./models/qwen3-8b/gguf/Q4_K_M/*.gguf \
+#      --calibration calibration.txt \
+#      --output qwen3-8b.imatrix
+#
+# 3. Quantize to different IQ precisions:
+#    for precision in IQ2_XS IQ3_XS IQ3_M IQ4_XS; do
+#      llama-pajamas-quant iq quantize \
+#        --model ./models/qwen3-8b/gguf/Q4_K_M/*.gguf \
+#        --imatrix qwen3-8b.imatrix \
+#        --precision $precision \
+#        --output ./models/qwen3-8b/gguf/$precision/
+#    done

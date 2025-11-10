@@ -1,0 +1,45 @@
+# Batch Processing Configuration Example
+# Usage: llama-pajamas-quant batch --config examples/batch-config.yaml
+
+# Global settings
+parallel: 2  # Number of models to process in parallel
+skip_existing: true  # Skip if output already exists
+evaluate: false  # Run evaluation after quantization
+
+# Models to process
+models:
+  # LLM Example 1: Dual-format quantization
+  - model: "Qwen/Qwen3-8B"
+    type: llm
+    formats: ["gguf", "mlx"]
+    gguf_precision: "Q4_K_M"
+    mlx_bits: 4
+    output: "./models/qwen3-8b"
+
+  # LLM Example 2: GGUF only (faster)
+  - model: "Qwen/Qwen3-1.7B"
+    type: llm
+    formats: ["gguf"]
+    gguf_precision: "Q4_K_M"
+    output: "./models/qwen3-1.7b"
+
+  # LLM Example 3: MLX only (Apple Silicon)
+  - model: "Qwen/Qwen3-0.6B"
+    type: llm
+    formats: ["mlx"]
+    mlx_bits: 4
+    output: "./models/qwen3-0.6b"
+
+  # Vision Example (placeholder - uses export command)
+  # - model: "yolov8n"
+  #   type: vision
+  #   backend: coreml
+  #   precision: int8
+  #   output: "./models/yolo-v8n"
+
+  # Speech Example (placeholder - uses export command)
+  # - model: "whisper-tiny"
+  #   type: speech
+  #   backend: coreml
+  #   precision: int8
+  #   output: "./models/whisper-tiny"
