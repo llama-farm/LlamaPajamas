@@ -504,6 +504,162 @@ See [run-tensorrt/README.md](../run-tensorrt/README.md) for complete documentati
 
 ---
 
+## ONNX Runtime (Universal Edge Deployment)
+
+Optimized inference for CPU, AMD GPU, ARM processors, Jetson, Intel GPUs.
+
+### Installation
+
+```bash
+pip install llama-pajamas-run-onnx
+
+# No special requirements:
+# - Works on CPU (any platform)
+# - Optional GPU acceleration (CUDA, ROCm, DirectML, OpenVINO)
+```
+
+### Quick Start
+
+**Vision Inference (CPU)**:
+```python
+from llama_pajamas_run_onnx import ONNXVisionBackend
+from PIL import Image
+
+# Initialize backend
+backend = ONNXVisionBackend()
+
+# Load model (CPU execution)
+backend.load_model(
+    "models/yolov8n/onnx/yolov8n.onnx",
+    model_type="detection",
+    providers=["CPUExecutionProvider"],  # CPU only
+    num_threads=4,
+)
+
+# Run inference
+image = Image.open("image.jpg")
+detections = backend.detect(image, confidence_threshold=0.5)
+
+for det in detections:
+    print(f"Class {det['class_id']}: {det['confidence']:.2f} at {det['bbox']}")
+```
+
+**Vision Inference (GPU)**:
+```python
+# NVIDIA GPU with TensorRT
+backend.load_model(
+    "models/yolov8n/onnx/yolov8n.onnx",
+    model_type="detection",
+    providers=["TensorrtExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider"],
+)
+
+# Intel GPU/CPU with OpenVINO
+backend.load_model(
+    "models/yolov8n/onnx/yolov8n.onnx",
+    model_type="detection",
+    providers=["OpenVINOExecutionProvider", "CPUExecutionProvider"],
+)
+
+# AMD GPU (Windows)
+backend.load_model(
+    "models/yolov8n/onnx/yolov8n.onnx",
+    model_type="detection",
+    providers=["DmlExecutionProvider", "CPUExecutionProvider"],
+)
+```
+
+**Speech-to-Text Inference**:
+```python
+from llama_pajamas_run_onnx import ONNXSpeechBackend
+from llama_pajamas_run_core.utils.audio_utils import load_audio
+
+# Initialize backend
+backend = ONNXSpeechBackend()
+
+# Load Whisper encoder
+backend.load_model(
+    encoder_path="models/whisper-tiny/onnx/tiny_encoder.onnx",
+    model_name="whisper-tiny",
+    providers=["CPUExecutionProvider"],
+)
+
+# Load and transcribe audio
+audio = load_audio("audio.wav", sample_rate=16000)
+result = backend.transcribe(audio, sample_rate=16000)
+
+print(f"Transcription: {result['text']}")
+```
+
+### Performance (CPU vs GPU)
+
+**Apple M3 Max (CPU only)**:
+| Model | Format | Inference | FPS |
+|-------|--------|-----------|-----|
+| YOLO-v8n | FP32 | 51.5ms | 19.4 |
+
+**NVIDIA RTX 4090 (TensorRT provider)**:
+| Model | Format | Inference | FPS |
+|-------|--------|-----------|-----|
+| YOLO-v8n | FP32 | 4ms | 250 |
+| YOLO-v8n | INT8 | 2.5ms | 400 |
+
+**Intel Core i9 (OpenVINO provider)**:
+| Model | Format | Inference | FPS |
+|-------|--------|-----------|-----|
+| YOLO-v8n | FP32 | ~30ms | ~33 |
+
+### Execution Providers
+
+ONNX Runtime supports multiple execution providers:
+
+| Provider | Hardware | Performance | Use Case |
+|----------|----------|-------------|----------|
+| **TensorrtExecutionProvider** | NVIDIA GPU | Highest | Data centers, high throughput |
+| **CUDAExecutionProvider** | NVIDIA GPU | High | General CUDA acceleration |
+| **OpenVINOExecutionProvider** | Intel CPU/GPU | High | Intel hardware optimization |
+| **DmlExecutionProvider** | AMD/NVIDIA (Windows) | Medium | Windows DirectX acceleration |
+| **ROCmExecutionProvider** | AMD GPU (Linux) | Medium | AMD GPU on Linux |
+| **CPUExecutionProvider** | Any CPU | Baseline | Universal compatibility |
+
+### Use Cases
+
+**ONNX vs TensorRT vs CoreML**:
+- **ONNX**: Cross-platform, CPU/edge deployment, portable models
+- **TensorRT**: NVIDIA GPUs only, highest performance, data centers
+- **CoreML**: Apple Silicon only, ANE acceleration, mobile
+
+**When to use ONNX Runtime**:
+1. **CPU-only deployment** (no GPU required)
+2. **Non-NVIDIA GPUs** (AMD, Intel)
+3. **Edge devices** (Raspberry Pi, Jetson with ONNX)
+4. **Cross-platform applications** (Windows, Linux, macOS, ARM)
+5. **Mixed hardware environments** (cloud with various GPUs)
+6. **Docker containers** (portable across infrastructure)
+
+### Quantization Support
+
+**INT8 Quantization**:
+- ✅ FP32 models: Full support on CPU
+- ⚠️ INT8 models: Require GPU providers (TensorRT, OpenVINO, DirectML)
+- ❌ INT8 on CPU: Limited operator support (`ConvInteger` not supported)
+
+For CPU deployment, use FP32 models. For GPU deployment, use INT8 for 72.8% size reduction.
+
+### Model Compatibility
+
+**Supported Models**:
+- ✅ Vision: YOLO, ViT, ResNet, CLIP, Faster R-CNN
+- ✅ Speech: Whisper encoder (decoder via Python)
+- ✅ Any PyTorch model exported to ONNX
+- ✅ HuggingFace Transformers (with `transformers.onnx`)
+
+**Export from**:
+- PyTorch → ONNX (via `torch.onnx.export`)
+- TensorFlow → ONNX (via `tf2onnx`)
+- HuggingFace → ONNX (via `optimum.onnxruntime`)
+
+---
+
 ## Requirements
 
 - Python 3.12+
