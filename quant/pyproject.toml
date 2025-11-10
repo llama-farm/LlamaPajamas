@@ -27,6 +27,12 @@ dependencies = [
     "onnxconverter-common>=1.14.0",
     "onnxscript>=0.5.0",
     # "onnxsim>=0.4.0",  # Optional bloat reduction (C++ build issues on macOS)
+    "ultralytics>=8.0.0",  # For YOLO export
+    "coremltools>=7.0.0",  # For CoreML export
+    "openai-whisper>=20230314",  # For Whisper export
+    "librosa>=0.10.0",  # For audio processing
+    "soundfile>=0.12.1",  # For audio I/O
+    "pillow>=10.0.0",  # For image processing
 ]
 
 [project.scripts]
