@@ -1,0 +1,266 @@
+name: E2E Runtime Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of tests to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - llm
+          - vision
+          - speech
+
+jobs:
+  # Test on CPU (Linux)
+  e2e-cpu-linux:
+    name: E2E Tests - CPU (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libgl1-mesa-glx \
+            libglib2.0-0 \
+            libsm6 \
+            libxext6 \
+            libxrender-dev \
+            ffmpeg
+
+      - name: Install LlamaPajamas packages
+        run: |
+          pip install -e ./quant
+          pip install -e ./run
+          pip install -e ./run-gguf
+          pip install -e ./run-onnx
+
+      - name: Run E2E Tests (CPU only)
+        run: |
+          cd quant/tests
+          python run_e2e_tests.py \
+            --output-dir ../../test_results \
+            --skip-tensorrt \
+            --skip-mlx \
+            --skip-coreml \
+            --no-cleanup
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-cpu-linux
+          path: test_results/
+          retention-days: 30
+
+  # Test on macOS (Apple Silicon)
+  e2e-macos-apple-silicon:
+    name: E2E Tests - macOS (Apple Silicon)
+    runs-on: macos-14  # M1 runner
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+
+      - name: Install LlamaPajamas packages
+        run: |
+          pip install -e ./quant
+          pip install -e ./run
+          pip install -e ./run-mlx
+          pip install -e ./run-coreml
+          pip install -e ./run-onnx
+
+      - name: Run E2E Tests (MLX + CoreML)
+        run: |
+          cd quant/tests
+          python run_e2e_tests.py \
+            --output-dir ../../test_results \
+            --skip-tensorrt \
+            --no-cleanup
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-macos-m1
+          path: test_results/
+          retention-days: 30
+
+  # Test on GPU (NVIDIA)
+  e2e-gpu-nvidia:
+    name: E2E Tests - GPU (NVIDIA)
+    runs-on: self-hosted  # Requires self-hosted runner with NVIDIA GPU
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check NVIDIA GPU
+        run: |
+          nvidia-smi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install LlamaPajamas packages
+        run: |
+          pip install -e ./quant
+          pip install -e ./run
+          pip install -e ./run-gguf
+          pip install -e ./run-onnx
+          pip install -e ./run-tensorrt
+
+      - name: Run E2E Tests (with TensorRT)
+        run: |
+          cd quant/tests
+          python run_e2e_tests.py \
+            --output-dir ../../test_results \
+            --skip-mlx \
+            --skip-coreml \
+            --no-cleanup
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-gpu-nvidia
+          path: test_results/
+          retention-days: 30
+
+  # TensorRT Docker Tests
+  e2e-tensorrt-docker:
+    name: E2E Tests - TensorRT (Docker)
+    runs-on: self-hosted  # Requires self-hosted runner with NVIDIA GPU + Docker
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check NVIDIA GPU
+        run: |
+          nvidia-smi
+
+      - name: Check Docker
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Build TensorRT Docker image
+        run: |
+          cd docker
+          docker compose -f docker-compose.tensorrt.yml build
+
+      - name: Run E2E Tests in TensorRT container
+        run: |
+          cd docker
+          docker compose -f docker-compose.tensorrt.yml run --rm tensorrt-all-tests
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-tensorrt-docker
+          path: test_results/
+          retention-days: 30
+
+      - name: Cleanup Docker
+        if: always()
+        run: |
+          cd docker
+          docker compose -f docker-compose.tensorrt.yml down -v
+
+  # Generate test report
+  generate-report:
+    name: Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [e2e-cpu-linux, e2e-macos-apple-silicon]
+    if: always()
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all_test_results
+
+      - name: Generate summary report
+        run: |
+          echo "# E2E Runtime Test Results" > test_report.md
+          echo "" >> test_report.md
+          echo "## Test Summary" >> test_report.md
+          echo "" >> test_report.md
+
+          for dir in all_test_results/*/; do
+            if [ -f "$dir/e2e_test_summary.json" ]; then
+              echo "### $(basename $dir)" >> test_report.md
+              python3 -c "
+          import json, sys
+          with open('$dir/e2e_test_summary.json') as f:
+              data = json.load(f)
+              summary = data.get('summary', {})
+              print(f\"- Total tests: {summary.get('total_tests', 0)}\")
+              print(f\"- Passed: {summary.get('passed', 0)}\")
+              print(f\"- Failed: {summary.get('failed', 0)}\")
+              print(f\"- Success rate: {summary.get('success_rate', 0):.1f}%\")
+              print()
+          " >> test_report.md
+            fi
+          done
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-report
+          path: test_report.md
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('test_report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });

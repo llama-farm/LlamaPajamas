@@ -1,0 +1,26 @@
+# Test outputs and caches
+test_results/
+test_results.json
+hf_cache/
+cache/
+*.gguf
+*.mlpackage
+*.onnx
+*.engine
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary files
+*.log
+*.tmp
+temp_*/
