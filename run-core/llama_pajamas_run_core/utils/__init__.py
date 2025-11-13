@@ -9,6 +9,8 @@ from .vision_utils import (
     batch_preprocess_images,
     get_model_info,
     get_coco_class_names,
+    get_imagenet_class_names,
+    annotate_image_with_detections,
     softmax,
 )
 
@@ -21,5 +23,7 @@ __all__ = [
     "batch_preprocess_images",
     "get_model_info",
     "get_coco_class_names",
+    "get_imagenet_class_names",
+    "annotate_image_with_detections",
     "softmax",
 ]
