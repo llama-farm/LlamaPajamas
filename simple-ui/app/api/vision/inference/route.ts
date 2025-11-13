@@ -263,16 +263,27 @@ except Exception as e:
         })
 
         let output = ''
+        let buffer = ''
 
         proc.stdout?.on('data', (data) => {
           const text = data.toString()
           output += text
+          buffer += text
 
-          const lines = text.split('\n')
+          // Process complete lines only
+          const lines = buffer.split('\n')
+          // Keep the last incomplete line in the buffer
+          buffer = lines.pop() || ''
+
           for (const line of lines) {
             if (line.startsWith('RESULT:')) {
-              const resultData = JSON.parse(line.substring(7))
-              send({ result: resultData })
+              try {
+                const resultData = JSON.parse(line.substring(7))
+                send({ result: resultData })
+              } catch (e) {
+                // JSON might be incomplete, add back to buffer
+                buffer = line + '\n' + buffer
+              }
             } else if (line.trim() && !line.startsWith('ERROR:')) {
               send({ progress: line })
             }
