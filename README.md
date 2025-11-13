@@ -512,9 +512,107 @@ uv run python scripts/export_model.py \
 
 **Note**: INT8 models require GPU execution providers (TensorRT, OpenVINO, DirectML). For CPU-only deployment, use FP32.
 
-## 4. Runtime (Online)
+## 4. Vision Utilities (NEW: Task Types & Annotations)
+
+### 4 Vision Task Types
+
+LlamaPajamas now supports 4 distinct vision task types with model-specific capabilities:
+
+| Task | Description | Output | Models |
+|------|-------------|--------|--------|
+| **Classification** | What is in the image? | Top-K predictions with confidence | ViT, CLIP |
+| **Localization** | Where is the main object? | Single bounding box + label | ViT, CLIP, YOLO |
+| **Detection** | What and where (all objects)? | Multiple bounding boxes + labels | YOLO |
+| **Segmentation** | Instance masks per object | Bounding boxes + masks | YOLO (segmentation models) |
+
+### ImageNet Labels & Annotations
+
+**Human-Readable Class Names:**
+```python
+from llama_pajamas_run_core.utils import get_imagenet_class_names
+
+# Get ImageNet-1k class names
+imagenet_names = get_imagenet_class_names()
+
+# Example: class_167 → "tabby_cat"
+label = imagenet_names[167]  # "tabby_cat"
+```
+
+**Annotated Images with Boxes, Labels, and Masks:**
+```python
+from llama_pajamas_run_core.utils import annotate_image_with_detections
+from PIL import Image
+
+# After detection/classification
+image = Image.open("photo.jpg")
+detections = backend.detect(image, confidence_threshold=0.5)
+
+# Annotate image based on task type
+annotated = annotate_image_with_detections(
+    image,
+    detections,
+    task_type="detection"  # or "classification", "localization", "segmentation"
+)
+
+# Save annotated image with visual overlays
+annotated.save("annotated_output.jpg")
+```
+
+**Annotation Features:**
+- **Classification**: Top prediction label at top-left
+- **Localization**: Green bounding box around main object with label
+- **Detection**: Color-coded boxes for all objects with confidence scores
+- **Segmentation**: Semi-transparent colored masks per instance
+
+## 5. Runtime (Online)
 
 ### Vision Runtime - Complete API Guide
+
+#### 4-Task Vision API (CoreML - Apple Silicon)
+
+```python
+# run-coreml/examples/vision_all_tasks.py
+from llama_pajamas_run_coreml.backends.vision import CoreMLVisionBackend
+from llama_pajamas_run_core.utils import get_imagenet_class_names, annotate_image_with_detections
+from PIL import Image
+
+# Task 1: Classification - "What is this?"
+backend = CoreMLVisionBackend()
+backend.load_model("models/clip-vit-base/coreml/int8/model.mlpackage", model_type="classification")
+
+image = Image.open("cat.jpg")
+predictions = backend.classify(image, top_k=5)
+
+# Get human-readable labels
+imagenet_names = get_imagenet_class_names()
+for pred in predictions:
+    label = imagenet_names[pred.class_id]  # "tabby_cat" instead of "class_167"
+    print(f"{label}: {pred.confidence:.1%}")
+
+# Annotate image
+annotated = annotate_image_with_detections(image, predictions, task_type="classification")
+annotated.save("classification_result.jpg")
+
+# Task 2: Localization - "Where is the main object?"
+backend.load_model("models/yolo-v8n/coreml/fp16/model.mlpackage", model_type="detection")
+detections = backend.detect(image, confidence_threshold=0.3)
+
+# Get main object
+top_detection = max(detections, key=lambda d: d.confidence)
+annotated = annotate_image_with_detections(image, [top_detection], task_type="localization")
+annotated.save("localization_result.jpg")
+
+# Task 3: Detection - "What and where (all objects)?"
+detections = backend.detect(image, confidence_threshold=0.5)
+annotated = annotate_image_with_detections(image, detections, task_type="detection")
+annotated.save("detection_result.jpg")
+
+# Task 4: Segmentation - "Instance masks?"
+annotated = annotate_image_with_detections(image, detections, task_type="segmentation")
+annotated.save("segmentation_result.jpg")
+```
+
+**Performance**: ~40 FPS (INT8 with ANE), ~13-15 FPS (FP16)
 
 #### Object Detection (CoreML - Apple Silicon)
 
@@ -819,6 +917,44 @@ print(f"Confidence: {result.confidence:.2f}")
 ```
 
 **Performance**: 31x faster than real-time (RTF: 0.032)
+
+#### Browser Audio Recording (NEW: WebM Support)
+
+**Browser MediaRecorder creates audio/webm files** which Whisper cannot process directly. LlamaPajamas automatically converts webm→wav using ffmpeg:
+
+```python
+# Simple UI API route (simple-ui/app/api/speech/transcribe/route.ts)
+# Handles webm from browser automatically:
+
+import { spawn } from 'child_process'
+
+# 1. Save uploaded webm file
+await writeFile(tempAudioPath, audioBuffer)
+
+# 2. Convert webm → wav (16kHz, mono) using ffmpeg
+const ffmpeg = spawn('ffmpeg', [
+  '-i', tempAudioPath,      // Input: webm from browser
+  '-ar', '16000',           // 16kHz (Whisper standard)
+  '-ac', '1',               // Mono channel
+  '-f', 'wav',              // WAV format
+  '-y',                     // Overwrite
+  tempWavPath
+])
+
+# 3. Transcribe converted audio
+backend.transcribe(audio, sample_rate=16000)
+```
+
+**Features:**
+- ✅ Browser recording works end-to-end (MediaRecorder API → webm → wav → transcription)
+- ✅ Automatic format detection and conversion
+- ✅ Proper SSE stream buffering (no hanging)
+- ✅ All temp files cleaned up automatically
+- ✅ Works with any Whisper model (tiny, base, small)
+
+**Requirements:**
+- ffmpeg must be installed (`brew install ffmpeg` on macOS)
+- Browser with MediaRecorder API support (all modern browsers)
 
 #### Advanced Transcription Options
 

@@ -287,6 +287,114 @@ for i, result in enumerate(results):
 - **RTF**: Real-time Factor (< 1.0 = faster than real-time)
 - All models leverage ANE for encoder inference
 
+### Browser Audio Recording (NEW: WebM Support)
+
+**Browser MediaRecorder creates audio/webm files** which Whisper cannot process directly. LlamaPajamas automatically handles webm→wav conversion:
+
+```typescript
+// Simple UI API (simple-ui/app/api/speech/transcribe/route.ts)
+// Automatic webm conversion using ffmpeg:
+
+import { spawn } from 'child_process'
+import { writeFile } from 'fs/promises'
+
+// 1. Save uploaded webm file from browser
+await writeFile(tempAudioPath, audioBuffer)
+
+// 2. Convert webm → wav (16kHz mono) using ffmpeg
+const ffmpeg = spawn('ffmpeg', [
+  '-i', tempAudioPath,      // Input: webm from MediaRecorder
+  '-ar', '16000',           // 16kHz (Whisper standard)
+  '-ac', '1',               // Mono channel
+  '-f', 'wav',              // WAV output
+  '-y',                     // Overwrite
+  tempWavPath
+])
+
+// 3. Load converted audio
+const audio = load_audio(tempWavPath, sample_rate=16000)
+const result = backend.transcribe(audio, sample_rate=16000)
+```
+
+**Features:**
+- ✅ End-to-end browser recording (MediaRecorder API → webm → wav → Whisper)
+- ✅ Automatic format detection and conversion
+- ✅ Proper SSE stream buffering (fixed hanging issues)
+- ✅ Automatic cleanup of temporary files
+- ✅ Works with all Whisper models (tiny, base, small)
+
+**Requirements:**
+- `ffmpeg` installed (`brew install ffmpeg` on macOS, `apt-get install ffmpeg` on Linux)
+- Modern browser with MediaRecorder API support (Chrome, Firefox, Safari, Edge)
+
+**Usage in Simple UI:**
+1. Navigate to Inference → Voice mode
+2. Click "🎤 Record" → speak → "⏹ Stop"
+3. Click "Transcribe Audio"
+4. Conversion happens automatically, transcription appears
+
+## Vision (CoreML) - 4 Task Types (NEW)
+
+### Supported Vision Tasks
+
+LlamaPajamas supports 4 distinct vision tasks with model-specific capabilities:
+
+| Task | Description | Output | Models |
+|------|-------------|--------|--------|
+| **Classification** | What is in the image? | Top-K predictions | ViT, CLIP |
+| **Localization** | Where is the main object? | Bounding box + label | ViT, CLIP, YOLO |
+| **Detection** | What and where (all objects)? | Multiple boxes + labels | YOLO |
+| **Segmentation** | Instance masks per object | Boxes + colored masks | YOLO (segmentation) |
+
+### Vision Utilities
+
+```python
+from llama_pajamas_run_coreml.backends.vision import CoreMLVisionBackend
+from llama_pajamas_run_core.utils import get_imagenet_class_names, annotate_image_with_detections
+from PIL import Image
+
+backend = CoreMLVisionBackend()
+
+# Task 1: Classification with ImageNet labels
+backend.load_model("models/clip-vit-base/coreml/int8/model.mlpackage", model_type="classification")
+image = Image.open("cat.jpg")
+predictions = backend.classify(image, top_k=5)
+
+# Get human-readable labels (not just class IDs)
+imagenet_names = get_imagenet_class_names()
+for pred in predictions:
+    label = imagenet_names[pred.class_id]  # "tabby_cat" instead of "class_167"
+    print(f"{label}: {pred.confidence:.1%}")
+
+# Generate annotated image with labels
+annotated = annotate_image_with_detections(image, predictions, task_type="classification")
+annotated.save("classification_result.jpg")
+
+# Task 2: Localization (main object with bounding box)
+backend.load_model("models/yolo-v8n/coreml/fp16/model.mlpackage", model_type="detection")
+detections = backend.detect(image, confidence_threshold=0.3)
+top_detection = max(detections, key=lambda d: d.confidence)
+annotated = annotate_image_with_detections(image, [top_detection], task_type="localization")
+annotated.save("localization_result.jpg")
+
+# Task 3: Detection (all objects with colored boxes)
+detections = backend.detect(image, confidence_threshold=0.5)
+annotated = annotate_image_with_detections(image, detections, task_type="detection")
+annotated.save("detection_result.jpg")
+
+# Task 4: Segmentation (instance masks)
+annotated = annotate_image_with_detections(image, detections, task_type="segmentation")
+annotated.save("segmentation_result.jpg")
+```
+
+**Annotation Features:**
+- **Classification**: Top prediction label at top-left
+- **Localization**: Green bounding box with label
+- **Detection**: Color-coded boxes for each object
+- **Segmentation**: Semi-transparent colored masks per instance
+
+**CLI Test**: See `run-coreml/test_all_vision_tasks.py` for complete examples
+
 ## Multi-Modal Server (CoreML)
 
 Unified OpenAI-compatible API server with Vision + Speech + LLM support.
