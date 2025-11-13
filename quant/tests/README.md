@@ -4,6 +4,24 @@ End-to-end tests for validating model export, quantization, and runtime executio
 
 ## Quick Start
 
+### Practical Runtime Tests (Recommended)
+
+For quick validation of runtimes without full quantization pipeline:
+
+```bash
+# Test runtimes with pre-quantized models (Python 3.11+)
+python test_runtime_e2e.py
+
+# Or test just GGUF
+python test_simple_gguf.py
+```
+
+These tests work with Python 3.11+ and minimal dependencies.
+
+### Full Pipeline Tests
+
+For complete export, quantization, and evaluation testing (requires Python 3.12+):
+
 ```bash
 # Run all tests
 python run_e2e_tests.py
@@ -19,6 +37,12 @@ python run_e2e_tests.py --skip-tensorrt --skip-mlx --skip-coreml
 
 ## Test Files
 
+### Practical Runtime Tests
+- `test_runtime_e2e.py` - Runtime tests with pre-quantized models (Python 3.11+)
+- `test_simple_gguf.py` - Simple GGUF runtime test (Python 3.11+)
+- `check_environment.py` - Environment checker
+
+### Full Pipeline Tests (Python 3.12+)
 - `run_e2e_tests.py` - Main test orchestrator
 - `test_e2e_llm.py` - LLM tests (Qwen2.5-1.5B, GGUF/MLX)
 - `test_e2e_vision.py` - Vision tests (YOLOv8n, CoreML/ONNX/TensorRT)
@@ -43,10 +67,13 @@ python run_e2e_tests.py --skip-tensorrt --skip-mlx --skip-coreml
 
 ## Requirements
 
+### Python Version
+- **Practical Runtime Tests**: Python 3.11+
+- **Full Pipeline Tests**: Python 3.12+ (due to package dependencies)
+
 ### All Platforms
-- Python 3.11+
-- 16GB RAM
-- 50GB disk space
+- 16GB RAM (recommended)
+- 50GB disk space (for full tests, 10GB for runtime tests)
 
 ### macOS (Apple Silicon)
 - MLX and CoreML tests
