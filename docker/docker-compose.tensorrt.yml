@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  tensorrt-e2e-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.tensorrt
+      args:
+        TENSORRT_VERSION: "25.10"
+    image: llamapajamas-tensorrt:latest
+    container_name: llamapajamas-tensorrt-e2e
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - CUDA_VISIBLE_DEVICES=0
+      - TRT_OSSPATH=/opt/tensorrt
+    volumes:
+      # Mount test results directory
+      - ../test_results:/workspace/test_results
+      # Mount cache directories to persist downloads
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ~/.cache/ultralytics:/root/.cache/ultralytics
+    shm_size: '8gb'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      bash -c "
+      echo '🚀 Starting TensorRT E2E Tests' &&
+      python quant/tests/run_e2e_tests.py \
+        --tests vision \
+        --output-dir /workspace/test_results \
+        --no-cleanup
+      "
+
+  # Service for running all E2E tests (LLM, Vision, Speech)
+  tensorrt-all-tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.tensorrt
+      args:
+        TENSORRT_VERSION: "25.10"
+    image: llamapajamas-tensorrt:latest
+    container_name: llamapajamas-tensorrt-all
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - CUDA_VISIBLE_DEVICES=0
+      - TRT_OSSPATH=/opt/tensorrt
+    volumes:
+      - ../test_results:/workspace/test_results
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ~/.cache/ultralytics:/root/.cache/ultralytics
+    shm_size: '8gb'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      bash -c "
+      echo '🚀 Starting All E2E Tests with TensorRT' &&
+      python quant/tests/run_e2e_tests.py \
+        --output-dir /workspace/test_results \
+        --no-cleanup
+      "
+
+  # Interactive shell for debugging
+  tensorrt-shell:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.tensorrt
+      args:
+        TENSORRT_VERSION: "25.10"
+    image: llamapajamas-tensorrt:latest
+    container_name: llamapajamas-tensorrt-shell
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - TRT_OSSPATH=/opt/tensorrt
+    volumes:
+      - ../test_results:/workspace/test_results
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ~/.cache/ultralytics:/root/.cache/ultralytics
+    shm_size: '8gb'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    command: /bin/bash

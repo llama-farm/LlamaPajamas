@@ -1,0 +1,86 @@
+# TensorRT E2E Testing Dockerfile
+# Based on NVIDIA TensorRT container with LlamaPajamas testing setup
+
+ARG TENSORRT_VERSION=25.10
+FROM nvcr.io/nvidia/tensorrt:${TENSORRT_VERSION}-py3
+
+# Set working directory
+WORKDIR /workspace
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    wget \
+    curl \
+    build-essential \
+    python3-pip \
+    python3-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip install --upgrade pip setuptools wheel
+
+# Install PyTorch with CUDA support
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Install TensorRT Python dependencies
+RUN /opt/tensorrt/python/python_setup.sh || true
+
+# Install common ML/AI libraries
+RUN pip install \
+    numpy \
+    pillow \
+    opencv-python-headless \
+    scipy \
+    scikit-learn \
+    matplotlib \
+    pandas
+
+# Install ONNX and ONNX Runtime with TensorRT
+RUN pip install \
+    onnx \
+    onnxruntime-gpu \
+    onnx-simplifier
+
+# Install Ultralytics for YOLO
+RUN pip install ultralytics
+
+# Install HuggingFace libraries
+RUN pip install \
+    transformers \
+    accelerate \
+    datasets \
+    huggingface-hub
+
+# Install testing dependencies
+RUN pip install \
+    pytest \
+    pytest-cov \
+    pytest-timeout
+
+# Copy LlamaPajamas source code
+COPY . /workspace/LlamaPajamas
+
+# Install LlamaPajamas packages
+WORKDIR /workspace/LlamaPajamas
+
+# Install in development mode
+RUN pip install -e ./quant
+RUN pip install -e ./run
+RUN pip install -e ./run-tensorrt
+RUN pip install -e ./run-onnx
+
+# Set environment variables for TensorRT
+ENV TRT_OSSPATH=/opt/tensorrt
+ENV LD_LIBRARY_PATH=/opt/tensorrt/lib:$LD_LIBRARY_PATH
+
+# Create output directory for test results
+RUN mkdir -p /workspace/test_results
+
+# Set default command
+CMD ["python", "quant/tests/test_e2e_vision.py", "--output-dir", "/workspace/test_results", "--no-cleanup"]
