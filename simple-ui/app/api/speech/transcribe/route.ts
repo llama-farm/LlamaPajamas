@@ -115,7 +115,9 @@ try:
     backend = CoreMLSTTBackend()
 
     # Extract model name from path (e.g., "tiny" from "whisper-tiny")
-    model_name = "${modelPath.replace(/\\/g, '/')}".split('/')[-3].replace('whisper-', '')
+    # Path format: .../whisper-tiny/coreml/int8/encoder.mlpackage
+    # So [-4] is "whisper-tiny", then remove "whisper-" prefix
+    model_name = "${modelPath.replace(/\\/g, '/')}".split('/')[-4].replace('whisper-', '')
 
     backend.load_model(
         model_path="${modelPath.replace(/\\/g, '/')}",
@@ -130,7 +132,12 @@ try:
     # Transcribe (README line 814)
     result = backend.transcribe(audio, sample_rate=16000)
 
-    print(f"RESULT:{json.dumps({'text': result.text, 'language': result.language, 'confidence': result.confidence})}", flush=True)
+    # Calculate average confidence from segments if available
+    confidence = 1.0
+    if result.segments and len(result.segments) > 0:
+        confidence = sum(seg.confidence for seg in result.segments) / len(result.segments)
+
+    print(f"RESULT:{json.dumps({'text': result.text, 'language': result.language, 'confidence': confidence})}", flush=True)
 
 except Exception as e:
     print(f"ERROR:{str(e)}", flush=True, file=sys.stderr)
