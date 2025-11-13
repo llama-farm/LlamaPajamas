@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto'
 
 // Simplified chat - just call the CLI!
 export async function POST(request: NextRequest) {
-  const { modelPath, backend, prompt, maxTokens, temperature } = await request.json()
+  const { modelPath, backend, prompt, systemPrompt, maxTokens, temperature } = await request.json()
 
   const runDir = path.join(process.cwd(), '../run')
   const tempScript = path.join(runDir, `chat-${randomUUID()}.py`)
@@ -34,12 +34,23 @@ config = RuntimeConfig(
 
 try:
     with ModelLoader(config) as loader:
-        prompt = """${prompt.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"""
+        system_prompt = """${(systemPrompt || 'You are a helpful assistant.').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"""
+        user_prompt = """${prompt.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"""
 
-        # Stream generation
+        # Use chat API with system prompt
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+
+        # Stream chat completion
         print("STARTING", flush=True)
-        for chunk in loader.generate(prompt, stream=True, max_tokens=${maxTokens || 200}):
-            print(f"CHUNK:{chunk}", flush=True, end="")
+        for chunk in loader.chat(messages, stream=True, max_tokens=${maxTokens || 200}):
+            if "choices" in chunk and len(chunk["choices"]) > 0:
+                delta = chunk["choices"][0].get("delta", {})
+                content = delta.get("content", "")
+                if content:
+                    print(f"CHUNK:{content}", flush=True, end="")
         print("\\nCOMPLETE", flush=True)
 except Exception as e:
     print(f"ERROR:{str(e)}", flush=True, file=sys.stderr)

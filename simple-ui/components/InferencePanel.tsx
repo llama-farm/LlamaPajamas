@@ -15,9 +15,11 @@ export default function InferencePanel() {
   const [backend, setBackend] = useState<'gguf' | 'mlx'>('gguf')
   const [useCustomPath, setUseCustomPath] = useState(false)
   const [prompt, setPrompt] = useState('')
+  const [systemPrompt, setSystemPrompt] = useState('You are a helpful assistant.')
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false)
   const [temperature, setTemperature] = useState(0.7)
   const [maxTokens, setMaxTokens] = useState(200)
-  const [messages, setMessages] = useState<{ role: string; content: string; time?: number }[]>([])
+  const [messages, setMessages] = useState<{ role: string; content: string; time?: number; ttft?: number; startupTime?: number }[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [currentResponse, setCurrentResponse] = useState('')
 
@@ -58,6 +60,7 @@ export default function InferencePanel() {
     setMessages(prev => [...prev, userMessage])
 
     const startTime = Date.now()
+    let firstTokenTime: number | null = null
 
     try {
       const res = await fetch('/api/chat', {
@@ -67,6 +70,7 @@ export default function InferencePanel() {
           modelPath,
           backend,
           prompt,
+          systemPrompt,  // Include system prompt
           maxTokens,
           temperature,
         }),
@@ -89,18 +93,26 @@ export default function InferencePanel() {
               const data = JSON.parse(line.slice(6))
 
               if (data.chunk) {
+                // Capture time to first token
+                if (firstTokenTime === null) {
+                  firstTokenTime = Date.now()
+                }
                 fullResponse += data.chunk
                 setCurrentResponse(fullResponse)
               }
 
               if (data.status === 'complete') {
                 const endTime = Date.now()
-                const time = ((endTime - startTime) / 1000).toFixed(2)
+                const totalTime = (endTime - startTime) / 1000
+                const ttft = firstTokenTime ? (firstTokenTime - startTime) / 1000 : 0
+                const inferenceTime = totalTime - ttft
 
                 setMessages(prev => [...prev, {
                   role: 'assistant',
                   content: fullResponse,
-                  time: parseFloat(time),
+                  time: parseFloat(totalTime.toFixed(2)),
+                  ttft: parseFloat(ttft.toFixed(3)),
+                  startupTime: parseFloat(inferenceTime.toFixed(2)),
                 }])
                 setCurrentResponse('')
               }
@@ -548,6 +560,33 @@ export default function InferencePanel() {
               </div>
             )}
 
+            {/* System Prompt Section */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium">System Prompt</label>
+                <button
+                  onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+                  className="text-xs text-blue-500 hover:text-blue-600"
+                >
+                  {showSystemPrompt ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              {showSystemPrompt && (
+                <textarea
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
+                  rows={3}
+                  placeholder="You are a helpful assistant."
+                />
+              )}
+              {!showSystemPrompt && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                  "{systemPrompt.substring(0, 50)}{systemPrompt.length > 50 ? '...' : ''}"
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -648,16 +687,24 @@ export default function InferencePanel() {
             {messages.length > 0 && (
               <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
                 <h3 className="text-sm font-medium mb-2">📊 Session Analytics</h3>
-                <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-4 gap-4 text-sm">
                   <div>
                     <div className="text-gray-600 dark:text-gray-400">Messages</div>
                     <div className="font-medium">{messages.filter(m => m.role !== 'error').length}</div>
                   </div>
                   <div>
-                    <div className="text-gray-600 dark:text-gray-400">Avg Response Time</div>
+                    <div className="text-gray-600 dark:text-gray-400">Time to First Token</div>
                     <div className="font-medium">
-                      {messages.filter(m => m.time).length > 0
-                        ? (messages.filter(m => m.time).reduce((sum, m) => sum + (m.time || 0), 0) / messages.filter(m => m.time).length).toFixed(2)
+                      {messages.filter(m => m.ttft).length > 0
+                        ? (messages.filter(m => m.ttft).reduce((sum, m) => sum + (m.ttft || 0), 0) / messages.filter(m => m.ttft).length).toFixed(3)
+                        : '0.000'}s
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-gray-600 dark:text-gray-400">Avg Inference</div>
+                    <div className="font-medium">
+                      {messages.filter(m => m.startupTime).length > 0
+                        ? (messages.filter(m => m.startupTime).reduce((sum, m) => sum + (m.startupTime || 0), 0) / messages.filter(m => m.startupTime).length).toFixed(2)
                         : '0.00'}s
                     </div>
                   </div>

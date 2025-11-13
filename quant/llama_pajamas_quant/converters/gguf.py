@@ -102,10 +102,9 @@ class GGUFConverter:
         if precision.upper() != "F16":
             quantized_gguf = self._quantize_gguf(fp16_gguf, precision, architecture_info)
 
-            # Remove FP16 version to save space
-            if fp16_gguf.exists() and fp16_gguf != quantized_gguf:
-                logger.info(f"Removing intermediate FP16 file: {fp16_gguf}")
-                fp16_gguf.unlink()
+            # Keep F16 version for IQ quantization workflows
+            # (IQ quantization requires F16 or higher precision as input)
+            logger.info(f"Keeping F16 file for IQ workflows: {fp16_gguf}")
 
             final_gguf = quantized_gguf
         else:
