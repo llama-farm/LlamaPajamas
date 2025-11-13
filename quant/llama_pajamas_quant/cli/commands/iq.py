@@ -48,6 +48,11 @@ def register_command(subparsers):
     )
     quant_parser.add_argument('--imatrix', type=Path, help='Existing imatrix file (skip generation)')
     quant_parser.add_argument('--calibration', type=Path, help='Calibration file (if generating imatrix)')
+    quant_parser.add_argument(
+        '--domain',
+        choices=['tool_calling', 'summarization', 'rag', 'military', 'medical', 'tone_analysis', 'general'],
+        help='Domain-specific calibration (uses built-in data, overrides --calibration)'
+    )
     quant_parser.add_argument('--n-ctx', type=int, default=2048, help='Context for imatrix generation')
     quant_parser.add_argument('--n-chunks', type=int, default=100, help='Chunks for imatrix generation')
     quant_parser.add_argument('--pure', action='store_true', help='Pure quantization (no mixed precision)')
@@ -153,11 +158,15 @@ def quantize_iq(args):
 
         else:
             # Full workflow: generate imatrix → quantize
-            if not args.calibration:
-                logger.error("Error: --calibration required if --imatrix not provided")
+            # Handle domain-specific calibration
+            if args.domain:
+                calibration_file = _get_domain_calibration_file(args.domain, output_dir)
+                print(f"Using {args.domain} domain calibration: {calibration_file}")
+            elif args.calibration:
+                calibration_file = validate_path(args.calibration)
+            else:
+                logger.error("Error: --calibration or --domain required if --imatrix not provided")
                 return 1
-
-            calibration_file = validate_path(args.calibration)
 
             result = quantizer.quantize_full_workflow(
                 model_path=model_path,
@@ -229,3 +238,57 @@ def run_binary(args):
     except Exception as e:
         logger.error(f"Failed to run binary: {e}")
         return 1
+
+
+def _get_domain_calibration_file(domain: str, output_dir: Path) -> Path:
+    """Get or create domain-specific calibration file.
+
+    Args:
+        domain: Domain name
+        output_dir: Output directory for calibration files
+
+    Returns:
+        Path to the calibration file
+    """
+    import tempfile
+    from ...calibration import (
+        get_tool_calling_calibration_text,
+        get_summarization_calibration_text,
+        get_rag_calibration_text,
+        get_military_calibration_text,
+        get_medical_calibration_text,
+        get_tone_analysis_calibration_text,
+    )
+
+    # Map domains to their getter functions
+    domain_getters = {
+        'tool_calling': get_tool_calling_calibration_text,
+        'summarization': get_summarization_calibration_text,
+        'rag': get_rag_calibration_text,
+        'military': get_military_calibration_text,
+        'medical': get_medical_calibration_text,
+        'tone_analysis': get_tone_analysis_calibration_text,
+    }
+
+    # Handle 'general' domain - combine multiple domains
+    if domain == 'general':
+        calibration_text = (
+            get_tool_calling_calibration_text() + '\n' +
+            get_summarization_calibration_text() + '\n' +
+            get_rag_calibration_text()
+        )
+    elif domain in domain_getters:
+        calibration_text = domain_getters[domain]()
+    else:
+        raise ValueError(f"Unknown domain: {domain}")
+
+    # Create temporary calibration file in output directory
+    output_dir.mkdir(parents=True, exist_ok=True)
+    calibration_file = output_dir / f"calibration_{domain}.txt"
+
+    with open(calibration_file, 'w', encoding='utf-8') as f:
+        f.write(calibration_text)
+
+    logger.info(f"Created domain calibration file: {calibration_file}")
+
+    return calibration_file

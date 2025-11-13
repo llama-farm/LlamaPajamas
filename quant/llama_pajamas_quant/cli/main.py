@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from .utils import setup_logging
-from .commands import quantize, iq, hardware, export, evaluate, batch
+from .commands import quantize, iq, hardware, export, evaluate, batch, calibration
 
 
 def main():
@@ -22,6 +22,9 @@ Examples:
 
   # IQ quantization (extreme compression)
   llama-pajamas-quant iq quantize --model model.gguf --calibration data.txt --precision IQ2_XS
+
+  # Generate domain-specific calibration data
+  llama-pajamas-quant calibration generate --domain medical --output ./calibration_data --num-samples 200
 
   # Detect hardware
   llama-pajamas-quant hardware detect
@@ -44,6 +47,7 @@ For more help on a command, run:
     # Register subcommands
     quantize.register_command(subparsers)
     iq.register_command(subparsers)
+    calibration.add_calibration_parser(subparsers)
     hardware.register_command(subparsers)
     export.register_command(subparsers)
     evaluate.register_command(subparsers)
