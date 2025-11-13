@@ -1,0 +1,20 @@
+Analyze the tactical advantages of establishing a forward operating base in mountainous terrain versus urban environments, considering supply lines, defensive positions, and mobility.
+Given a convoy of 15 vehicles transporting critical supplies through hostile territory, develop a security protocol that accounts for IED threats, ambush scenarios, and air support coordination.
+Describe the key differences between HUMINT, SIGINT, and GEOINT intelligence gathering methods, and explain when each would be most effective in a counter-insurgency operation.
+Create a threat assessment for a coastal military installation, considering potential attack vectors from sea, air, and land, including cyber warfare capabilities.
+Explain the command structure and roles in a typical infantry platoon, and how this structure adapts during urban combat operations versus open-field engagements.
+Analyze the strategic implications of deploying unmanned aerial vehicles (UAVs) for reconnaissance versus manned aircraft, considering operational costs, risk factors, and intelligence gathering capabilities.
+Develop a logistics plan for sustaining a battalion-sized element in a remote location for 90 days, including ammunition, food, water, medical supplies, and fuel requirements.
+Compare and contrast the tactical doctrine of maneuver warfare versus attrition warfare, providing historical examples and discussing when each approach is most appropriate.
+Describe the process of conducting a tactical site exploitation (TSE) after a successful raid, including evidence collection, biometric data gathering, and intelligence analysis.
+Explain the principles of military camouflage and concealment in different environments: desert, jungle, arctic, and urban settings.
+Analyze the defensive capabilities and vulnerabilities of modern main battle tanks, considering anti-tank guided missiles, improvised explosive devices, and air strikes.
+Develop a counter-sniper strategy for protecting a forward operating base in an urban environment, including detection methods, protective measures, and response protocols.
+Describe the planning process for a joint military operation involving Army, Navy, Air Force, and Marine Corps elements, including command relationships and coordination requirements.
+Explain the concept of 'combat multipliers' in modern warfare, providing examples such as night vision equipment, GPS navigation, and satellite communications.
+Analyze the challenges of maintaining operational security (OPSEC) in the age of social media and ubiquitous smartphone usage among military personnel.
+Develop a training curriculum for squad leaders focusing on decision-making under stress, tactical communication, and leadership in high-pressure combat scenarios.
+Describe the role and capabilities of military special operations forces, comparing the missions and training of units such as Navy SEALs, Army Rangers, and Air Force Pararescue.
+Explain the principles of force protection and antiterrorism measures for deployed military units, including perimeter security, access control, and threat detection.
+Analyze the strategic and tactical considerations for conducting amphibious assault operations, from initial planning through beach landing and securing the objective.
+Develop a risk assessment framework for evaluating mission proposals, considering factors such as probability of success, potential casualties, strategic value, and political implications.
