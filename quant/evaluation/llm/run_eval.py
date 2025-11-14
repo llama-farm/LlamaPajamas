@@ -21,10 +21,11 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 
 
 def load_questions() -> List[Dict[str, Any]]:
@@ -43,6 +44,53 @@ def load_questions() -> List[Dict[str, Any]]:
 
 # Load all 140 questions
 TEST_PROMPTS = load_questions()
+
+# Category-specific system prompts for STRICT evaluation
+SYSTEM_PROMPTS = {
+    "knowledge": """You are taking a knowledge test. Answer multiple choice questions with ONLY the letter.
+
+RULES: Answer with ONLY the letter (A, B, C, or D). NO explanations. NO punctuation after the letter.
+You may use <think></think> tags to reason, but your final answer must be just the letter.
+
+Example: <think>2+2=4, option B</think>
+B""",
+
+    "common_sense": """You are taking a common sense test. Answer with ONLY the letter.
+
+RULES: Answer with ONLY the letter (A, B, C, or D). NO explanations. NO punctuation after the letter.
+You may use <think></think> tags to reason, but your final answer must be just the letter.""",
+
+    "math": """You are taking a math test. Answer with ONLY the exact number.
+
+RULES: Answer with ONLY the number. NO units. NO explanations. NO additional text.
+You may use <think></think> tags to calculate, but your final answer must be just the number.""",
+
+    "reasoning": """You are taking a reasoning test. Answer with ONLY the letter.
+
+RULES: Answer with ONLY the letter (A, B, C, or D). NO explanations. NO punctuation after the letter.
+You may use <think></think> tags to reason, but your final answer must be just the letter.""",
+
+    "truthfulness": """You are taking a test about myths and facts. Answer with ONLY the letter.
+
+RULES: Answer with ONLY the letter (A, B, C, or D). NO explanations. NO punctuation after the letter.
+Focus on scientific facts. You may use <think></think> tags, but final answer must be just the letter.""",
+
+    "tool_calling": """You are taking a function calling test. Answer with ONLY the letter.
+
+RULES: Answer with ONLY the letter (A, B, C, or D). NO explanations. NO punctuation after the letter.
+You may use <think></think> tags to analyze, but your final answer must be just the letter.""",
+}
+
+
+def extract_answer_strict(response: str, expected: str) -> Tuple[bool, str]:
+    """Extract and validate answer with STRICT matching. Supports <think> tags."""
+    # Remove <think>...</think> tags
+    response_no_think = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL)
+    actual_answer = response_no_think.strip()
+
+    # STRICT exact matching
+    is_correct = actual_answer == expected
+    return is_correct, actual_answer
 
 # Fallback questions if JSON loading fails
 FALLBACK_PROMPTS = [
@@ -100,10 +148,14 @@ FALLBACK_PROMPTS = [
 ]
 
 
-def evaluate_gguf_model(model_path: str, num_questions: int = None) -> Dict[str, Any]:
+def evaluate_gguf_model(model_path: str, num_questions: int = None, strict: bool = False) -> Dict[str, Any]:
     """Evaluate GGUF model."""
     print(f"\n{'='*80}")
     print(f"Testing GGUF Model: {model_path}")
+    if strict:
+        print(f"Mode: STRICT (exact answer matching with system prompts)")
+    else:
+        print(f"Mode: LENIENT (partial matching)")
     print(f"{'='*80}\n")
 
     from llama_cpp import Llama
@@ -113,7 +165,8 @@ def evaluate_gguf_model(model_path: str, num_questions: int = None) -> Dict[str,
         model_path=model_path,
         n_ctx=2048,
         n_gpu_layers=-1,
-        verbose=False
+        verbose=False,
+        chat_format="chatml" if strict else None
     )
     print("✓ Model loaded\n")
 
@@ -126,29 +179,53 @@ def evaluate_gguf_model(model_path: str, num_questions: int = None) -> Dict[str,
         print(f"[{i}/{total}] {test['category']}: ", end="", flush=True)
 
         start = time.time()
-        output = llm(
-            test["prompt"],
-            max_tokens=50,
-            temperature=0.1,
-            stop=["\n\n"]
-        )
-        duration = time.time() - start
 
-        full_response = output["choices"][0]["text"].strip()
-        answer = full_response[:10]
-        is_correct = test["expected"].lower() in answer.lower()
+        if strict:
+            # Use chat format with system prompts
+            category = test.get("category", "knowledge")
+            system_prompt = SYSTEM_PROMPTS.get(category, SYSTEM_PROMPTS["knowledge"])
+            output = llm.create_chat_completion(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": test["prompt"]}
+                ],
+                max_tokens=200,
+                temperature=0.1,
+                stop=["</s>", "\n\n", "Question:", "User:"]
+            )
+            full_response = output["choices"][0]["message"]["content"].strip()
+            is_correct, answer = extract_answer_strict(full_response, test["expected"])
+        else:
+            # Legacy lenient mode
+            output = llm(
+                test["prompt"],
+                max_tokens=50,
+                temperature=0.1,
+                stop=["\n\n"]
+            )
+            full_response = output["choices"][0]["text"].strip()
+            answer = full_response[:10]
+            is_correct = test["expected"].lower() in answer.lower()
+
+        duration = time.time() - start
 
         if is_correct:
             correct += 1
             print(f"✓ ({duration:.1f}s)")
         else:
-            print(f"✗ ({duration:.1f}s) - Got: {answer[:20]}, Expected: {test['expected']}")
+            print(f"✗ ({duration:.1f}s)")
+            if strict:
+                print(f"    Expected: '{test['expected']}' | Got: '{answer[:50]}'")
+            else:
+                print(f"    Got: {answer[:20]}, Expected: {test['expected']}")
 
         results.append({
             "category": test["category"],
             "correct": is_correct,
             "duration": duration,
-            "response": full_response
+            "expected": test["expected"],
+            "extracted_answer": answer if strict else answer[:10],
+            "response": full_response[:200]
         })
 
     accuracy = correct / total
@@ -175,6 +252,7 @@ def evaluate_gguf_model(model_path: str, num_questions: int = None) -> Dict[str,
     return {
         "format": "gguf",
         "model_path": model_path,
+        "evaluation_mode": "strict" if strict else "lenient",
         "accuracy": accuracy,
         "correct": correct,
         "total": total,
@@ -318,21 +396,36 @@ def main():
         type=int,
         help="Limit number of questions (default: all)"
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        default=True,
+        help="Use strict evaluation with system prompts and exact matching (default: True)"
+    )
+    parser.add_argument(
+        "--lenient",
+        action="store_true",
+        help="Use lenient evaluation with partial matching (legacy mode)"
+    )
 
     args = parser.parse_args()
+
+    # Handle strict vs lenient
+    strict_mode = not args.lenient
 
     print("\n" + "="*80)
     print("Model Evaluation")
     print("="*80)
     print(f"\nEvaluating {len(args.model_path)} model(s)")
     print(f"Format: {args.format}")
-    print(f"Questions: {args.num_questions or 'all (120)'}")
+    print(f"Mode: {'STRICT' if strict_mode else 'LENIENT'}")
+    print(f"Questions: {args.num_questions or 'all (140)'}")
     print()
 
     # Evaluate each model
     for model_path in args.model_path:
         if args.format == "gguf":
-            eval_data = evaluate_gguf_model(model_path, args.num_questions)
+            eval_data = evaluate_gguf_model(model_path, args.num_questions, strict=strict_mode)
         else:
             eval_data = evaluate_mlx_model(model_path, args.num_questions)
 
