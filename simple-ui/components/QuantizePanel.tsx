@@ -48,6 +48,8 @@ export default function QuantizePanel() {
   const [enableIQ, setEnableIQ] = useState(false)
   const [iqPrecision, setIqPrecision] = useState('IQ2_XS')
   const [iqF16Model, setIqF16Model] = useState('')
+  const [iqCalibrationMode, setIqCalibrationMode] = useState<'domain' | 'file'>('domain')
+  const [iqCalibrationDomain, setIqCalibrationDomain] = useState('general')
   const [iqCalibrationFile, setIqCalibrationFile] = useState('')
 
   // Auto-discovered files
@@ -94,8 +96,12 @@ export default function QuantizePanel() {
 
   // Simplified IQ quantization - single function, calls CLI once
   const handleIQQuantize = async () => {
-    if (!iqF16Model || !iqCalibrationFile) {
-      alert('Please select both F16 model and calibration file')
+    if (!iqF16Model) {
+      alert('Please select F16 model')
+      return
+    }
+    if (iqCalibrationMode === 'file' && !iqCalibrationFile) {
+      alert('Please select calibration file')
       return
     }
 
@@ -109,7 +115,9 @@ export default function QuantizePanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sourceModel: iqF16Model,
-          calibrationFile: iqCalibrationFile,
+          calibrationMode: iqCalibrationMode,
+          calibrationDomain: iqCalibrationMode === 'domain' ? iqCalibrationDomain : undefined,
+          calibrationFile: iqCalibrationMode === 'file' ? iqCalibrationFile : undefined,
           precision: iqPrecision,
           outputDir,
         }),
@@ -383,27 +391,75 @@ export default function QuantizePanel() {
                     )}
                   </div>
 
-                  {/* Calibration File Dropdown (Auto-discovered) */}
+                  {/* Calibration Mode Selection */}
                   <div className="mb-3">
-                    <label className="block text-xs font-medium mb-1">
-                      Calibration Data
-                    </label>
-                    <select
-                      value={iqCalibrationFile}
-                      onChange={(e) => setIqCalibrationFile(e.target.value)}
-                      className="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
-                    >
-                      <option value="">Select calibration file...</option>
-                      {calibrationFiles.map((file) => (
-                        <option key={file} value={file}>
-                          {file.split('/').slice(-2).join('/')}
-                        </option>
-                      ))}
-                    </select>
-                    {calibrationFiles.length === 0 && !discoveringFiles && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        No calibration files found. Add .txt files to quant/calibration/ or quant/datasets/
-                      </p>
+                    <label className="block text-xs font-medium mb-1">Calibration Data</label>
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        onClick={() => setIqCalibrationMode('domain')}
+                        className={`flex-1 px-2 py-1 text-xs rounded ${
+                          iqCalibrationMode === 'domain'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        📚 Domain Presets
+                      </button>
+                      <button
+                        onClick={() => setIqCalibrationMode('file')}
+                        className={`flex-1 px-2 py-1 text-xs rounded ${
+                          iqCalibrationMode === 'file'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        📁 Custom File
+                      </button>
+                    </div>
+
+                    {/* Domain Selection */}
+                    {iqCalibrationMode === 'domain' && (
+                      <div>
+                        <select
+                          value={iqCalibrationDomain}
+                          onChange={(e) => setIqCalibrationDomain(e.target.value)}
+                          className="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                        >
+                          <option value="general">General (118 samples) - Balanced multi-purpose</option>
+                          <option value="tool_calling">Tool Calling (80 samples) - Function calling, API interactions</option>
+                          <option value="summarization">Summarization (25 samples) - Text compression, key points</option>
+                          <option value="rag">RAG (13 samples) - Document Q&A, retrieval</option>
+                          <option value="medical">Medical (25 samples) - Healthcare, diagnosis, treatment</option>
+                          <option value="military">Military (20 samples) - Defense, tactical planning</option>
+                          <option value="tone_analysis">Tone Analysis (25 samples) - Sentiment, emotion detection</option>
+                        </select>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          💡 Domain-specific calibration optimizes model for your use case
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Custom File Selection */}
+                    {iqCalibrationMode === 'file' && (
+                      <div>
+                        <select
+                          value={iqCalibrationFile}
+                          onChange={(e) => setIqCalibrationFile(e.target.value)}
+                          className="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                        >
+                          <option value="">Select custom calibration file...</option>
+                          {calibrationFiles.map((file) => (
+                            <option key={file} value={file}>
+                              {file.split('/').slice(-2).join('/')}
+                            </option>
+                          ))}
+                        </select>
+                        {calibrationFiles.length === 0 && !discoveringFiles && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            No custom files found. Add .txt files to quant/calibration/
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -425,10 +481,10 @@ export default function QuantizePanel() {
                   {/* Single Quantize Button */}
                   <button
                     onClick={handleIQQuantize}
-                    disabled={isRunning || !iqF16Model || !iqCalibrationFile}
+                    disabled={isRunning || !iqF16Model || (iqCalibrationMode === 'file' && !iqCalibrationFile)}
                     className="w-full px-3 py-2 text-sm bg-purple-500 text-white rounded font-medium hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    {isRunning ? 'Quantizing...' : 'Quantize with IQ'}
+                    {isRunning ? 'Quantizing...' : `Quantize with IQ (${iqCalibrationMode === 'domain' ? iqCalibrationDomain : 'custom'})`}
                   </button>
 
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
