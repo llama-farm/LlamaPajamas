@@ -48,11 +48,25 @@ def evaluate_llm(args):
         logger.error(f"Evaluation script not found: {eval_script}")
         return 1
 
-    # Build command
+    # Detect model format from path
+    model_path_str = str(args.model_dir)
+    if "gguf" in model_path_str.lower():
+        model_format = "gguf"
+    elif "mlx" in model_path_str.lower():
+        model_format = "mlx"
+    else:
+        logger.error(f"Cannot detect model format from path: {args.model_dir}")
+        logger.error("Path must contain 'gguf' or 'mlx'")
+        return 1
+
+    # Build command using UV
     cmd = [
-        sys.executable,
+        "uv",
+        "run",
+        "python",
         str(eval_script),
-        "--model-dir", str(args.model_dir),
+        "--model-path", str(args.model_dir),
+        "--format", model_format,
         "--num-questions", str(args.num_questions),
     ]
 
