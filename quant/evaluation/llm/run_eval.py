@@ -84,8 +84,14 @@ You may use <think></think> tags to analyze, but your final answer must be just 
 
 def extract_answer_strict(response: str, expected: str) -> Tuple[bool, str]:
     """Extract and validate answer with STRICT matching. Supports <think> tags."""
-    # Remove <think>...</think> tags
+    # Remove <think>...</think> tags (with or without closing tag)
+    # Some thinking models may output <think> without </think>
     response_no_think = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL)
+
+    # Also remove any unclosed <think> tags (thinking models often do this)
+    response_no_think = re.sub(r'<think>.*', '', response_no_think, flags=re.DOTALL)
+
+    # Get the actual answer
     actual_answer = response_no_think.strip()
 
     # STRICT exact matching
@@ -189,9 +195,9 @@ def evaluate_gguf_model(model_path: str, num_questions: int = None, strict: bool
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": test["prompt"]}
                 ],
-                max_tokens=200,
+                max_tokens=500,  # Increased to allow full thinking + answer
                 temperature=0.1,
-                stop=["</s>", "\n\n", "Question:", "User:"]
+                stop=["</s>", "Question:", "User:", "\n\nQuestion"]  # Removed \n\n to allow think tags
             )
             full_response = output["choices"][0]["message"]["content"].strip()
             is_correct, answer = extract_answer_strict(full_response, test["expected"])
